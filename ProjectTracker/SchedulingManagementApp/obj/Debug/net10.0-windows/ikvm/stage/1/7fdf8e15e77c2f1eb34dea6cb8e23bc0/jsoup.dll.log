@@ -1,0 +1,7 @@
+trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\7fdf8e15e77c2f1eb34dea6cb8e23bc0\jsoup.dll.rsp
+warning IKVM0101: Unable to compile class "META-INF.versions.11.org.jsoup.helper.HttpClientExecutor$ProxyWrap". (class format error "55.0")
+warning IKVM0101: Unable to compile class "META-INF.versions.11.org.jsoup.helper.RequestAuthHandler". (class format error "55.0")
+warning IKVM0101: Unable to compile class "META-INF.versions.11.org.jsoup.helper.HttpClientExecutor". (class format error "55.0")
+warning IKVM0101: Unable to compile class "META-INF.versions.11.module-info". (class format error "55.0")
+warning IKVM0100: Class "com.google.re2j.Pattern" not found.
+warning IKVM0100: Class "com.google.re2j.Matcher" not found.

@@ -1,0 +1,2 @@
+trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\0c21bae0d7af00e4687b7de0c5b671a9\org.osgi.resource.dll.rsp
+warning IKVM0100: Class "org.osgi.dto.DTO" not found.
