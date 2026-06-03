@@ -12,7 +12,9 @@ namespace ProjectTracker
         public const string GitHubMppPath = "2026 Forecast.mpp";
 
         // GitHub Personal Access Token
-        public const string GitHubToken = "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";
+        public static string GitHubToken => Environment.GetEnvironmentVariable("GITHUB_TOKEN")
+            ?? throw new InvalidOperationException("GITHUB_TOKEN environment variable is not set.");
+
 
         public static readonly string EncodedMppPath = Uri.EscapeDataString(GitHubMppPath);
 

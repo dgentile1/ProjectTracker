@@ -3,6 +3,7 @@ using MPXJ.Net;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Task = System.Threading.Tasks.Task;
+using System.Drawing;
 
 namespace ProjectTracker
 {
@@ -35,7 +36,7 @@ namespace ProjectTracker
                 dgvDetailView.DataSource =
                     await LoadProjectTasksAsync();
 
-
+                ApplyRowStyles();
             }
             catch (Exception ex)
             {
@@ -177,6 +178,8 @@ namespace ProjectTracker
 
             dgvDetailView.DataSource = rows;
 
+            ApplyRowStyles();
+
             UpdateStatistics(rows);
         }
 
@@ -187,6 +190,26 @@ namespace ProjectTracker
 
             lblModifiedCount.Text =
                 $"Modified: {rows.Count(r => r.IsModified)}";
+        }
+
+        private void ApplyRowStyles()
+        {
+            if (dgvDetailView.Rows == null || dgvDetailView.Rows.Count == 0)
+                return;
+
+            foreach (DataGridViewRow dgvr in dgvDetailView.Rows)
+            {
+                if (dgvr.DataBoundItem is MainScheduleGridView item && item.IsModified)
+                {
+                    dgvr.DefaultCellStyle.BackColor = Color.LightCoral;
+                    dgvr.DefaultCellStyle.ForeColor = Color.Black;
+                }
+                else
+                {
+                    dgvr.DefaultCellStyle.BackColor = Color.White;
+                    dgvr.DefaultCellStyle.ForeColor = Color.Black;
+                }
+            }
         }
     }
 }
