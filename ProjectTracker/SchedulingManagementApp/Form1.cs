@@ -1,18 +1,29 @@
 using com.sun.tools.javadoc;
+using Microsoft.Win32;
 using MPXJ.Net;
+using ProjectTracker.Models;
+using System.Drawing;
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Task = System.Threading.Tasks.Task;
-using System.Drawing;
+using System.Linq;
 
 namespace ProjectTracker
 {
     public partial class Form1 : Form
     {
         private readonly System.Windows.Forms.Timer refreshTimer = new();
+        private List<MainScheduleGridView> _allRows = new();
+
         public Form1()
         {
             InitializeComponent();
+            Load += (_, _) => ThemeManager.ApplyTheme(this);
+
+            // wire listbox events so selection filters the grid
+            lbxProjectNames.SelectedIndexChanged += LbxProjectNames_SelectedIndexChanged;
+            lbxProgrammerNames.SelectedIndexChanged += LbxProgrammerNames_SelectedIndexChanged;
+
             refreshTimer.Interval = 5 * 60 * 1000;
 
             refreshTimer.Tick += async (s, e) =>
@@ -32,17 +43,19 @@ namespace ProjectTracker
                 await RefreshProjectData();
                 refreshTimer.Start();
 
-                dgvDetailView.AutoGenerateColumns = true;
+                dgvDetailView.AutoGenerateColumns = false;
                 dgvDetailView.DataSource =
                     await LoadProjectTasksAsync();
 
                 ApplyRowStyles();
+                await LoadAndShowProgrammersAsync();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString());
             }
         }
+
         public async Task<string> DownloadMppFromGitHubAsync()
         {
             string githubOwner = "Firefly-Integrations";
@@ -94,6 +107,7 @@ namespace ProjectTracker
 
             return tempFile;
         }
+
         private async Task<List<MainScheduleGridView>> LoadProjectTasksAsync()
         {
             string tempFile = await DownloadMppFromGitHubAsync();
@@ -151,7 +165,6 @@ namespace ProjectTracker
             }
         }
 
-
         private Dictionary<Guid, ProjectModification> LoadModificationFile()
         {
             string filePath = "ProjectModifications.json";
@@ -176,11 +189,125 @@ namespace ProjectTracker
             var rows =
                 await LoadProjectTasksAsync();
 
-            dgvDetailView.DataSource = rows;
+            // cache all rows for filtering
+            _allRows = rows;
 
-            ApplyRowStyles();
+            // populate project list based on loaded rows
+            PopulateProjectNames();
+
+            // apply any active filters to the grid
+            ApplyFilters();
 
             UpdateStatistics(rows);
+        }
+
+        private void PopulateProjectNames()
+        {
+            lbxProjectNames.BeginUpdate();
+            lbxProjectNames.Items.Clear();
+
+            var names = _allRows
+                .Select(r => r.ProjectName)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct()
+                .OrderBy(n => n, StringComparer.OrdinalIgnoreCase);
+
+            foreach (var name in names)
+                lbxProjectNames.Items.Add(name);
+
+            lbxProjectNames.EndUpdate();
+        }
+
+        private async Task LoadAndShowProgrammersAsync()
+        {
+            //try GitHub first(falls back to local if not available)
+            //List<Programmers> programmers = await frmSettings.DownloadFromGitHubAsync();
+
+            //lbxProgrammerNames.Items.Clear();
+            //foreach (var p in programmers)
+            //{
+            //    var display = string.IsNullOrWhiteSpace(p.LastName) ? p.FirstName : $"{p.FirstName} {p.LastName}";
+            //    lbxProgrammerNames.Items.Add(display);
+            //}
+
+            List<Programmers> programmers = new();
+
+            try
+            {
+                programmers = await frmSettings.LoadFromDesktopAsync<Programmers>();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Failed to load programmers from Desktop: {ex}");
+                programmers = new List<Programmers>();
+            }
+
+            if (InvokeRequired)
+            {
+                Invoke(() =>
+                {
+                    lbxProgrammerNames.BeginUpdate();
+                    lbxProgrammerNames.Items.Clear();
+                    foreach (var p in programmers)
+                    {
+                        var display = string.IsNullOrWhiteSpace(p.LastName) ? p.FirstName : $"{p.FirstName} {p.LastName}";
+                        lbxProgrammerNames.Items.Add(display);
+                    }
+                    lbxProgrammerNames.EndUpdate();
+                });
+            }
+            else
+            {
+                lbxProgrammerNames.BeginUpdate();
+                lbxProgrammerNames.Items.Clear();
+                foreach (var p in programmers)
+                {
+                    var display = string.IsNullOrWhiteSpace(p.LastName) ? p.FirstName : $"{p.FirstName} {p.LastName}";
+                    lbxProgrammerNames.Items.Add(display);
+                }
+                lbxProgrammerNames.EndUpdate();
+            }
+        }
+
+        private void ApplyFilters()
+        {
+            if (_allRows == null)
+                return;
+
+            string selectedProject = lbxProjectNames.SelectedItem as string;
+            string selectedProgrammer = lbxProgrammerNames.SelectedItem as string;
+
+            var filtered = _allRows.AsEnumerable();
+
+            if (!string.IsNullOrWhiteSpace(selectedProject))
+            {
+                filtered = filtered.Where(r => string.Equals(r.ProjectName, selectedProject, StringComparison.OrdinalIgnoreCase));
+            }
+
+            if (!string.IsNullOrWhiteSpace(selectedProgrammer))
+            {
+                // match by Notes containing the programmer name (first or first+last)
+                string prog = selectedProgrammer;
+                filtered = filtered.Where(r =>
+                    !string.IsNullOrWhiteSpace(r.Notes) &&
+                    (r.Notes.IndexOf(prog, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                     r.Notes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Any(tok => string.Equals(tok, prog, StringComparison.OrdinalIgnoreCase))));
+            }
+
+            var list = filtered.ToList();
+            dgvDetailView.DataSource = list;
+            ApplyRowStyles();
+            UpdateStatistics(list);
+        }
+
+        private void LbxProjectNames_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            ApplyFilters();
+        }
+
+        private void LbxProgrammerNames_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            ApplyFilters();
         }
 
         private void UpdateStatistics(List<MainScheduleGridView> rows)
@@ -211,7 +338,22 @@ namespace ProjectTracker
                 }
             }
         }
+
+        private void dgvDetailView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
+        {
+            ApplyRowStyles();
+        }
+
+        private async void btnSettings_Click(object sender, EventArgs e)
+        {
+            frmSettings settings = new frmSettings();
+            settings.ShowDialog();
+
+            // reload programmers after settings changed
+            await LoadAndShowProgrammersAsync();
+
+            // re-apply filters in case selection needs to limit updated list
+            ApplyFilters();
+        }
     }
 }
-
-

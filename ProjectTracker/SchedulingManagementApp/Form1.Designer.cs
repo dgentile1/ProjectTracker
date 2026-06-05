@@ -29,13 +29,12 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            DataGridViewCellStyle dataGridViewCellStyle6 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
-            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle1 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle2 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle3 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle4 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle5 = new DataGridViewCellStyle();
             dgvDetailView = new DataGridView();
-            openDetailView = new DataGridViewButtonColumn();
             mSProjectGuidDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             projectNameDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             startDateDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
@@ -46,6 +45,7 @@
             durationDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             notesDataGridViewTextBoxColumn = new DataGridViewTextBoxColumn();
             isModifiedDataGridViewCheckBoxColumn = new DataGridViewCheckBoxColumn();
+            openDetailView = new DataGridViewButtonColumn();
             mainScheduleGridViewBindingSource = new BindingSource(components);
             mSProjectFieldsBindingSource = new BindingSource(components);
             projectTaskBindingSource = new BindingSource(components);
@@ -60,6 +60,9 @@
             gbxRange = new GroupBox();
             statusStrip1 = new StatusStrip();
             toolStripProgressBar1 = new ToolStripProgressBar();
+            lbxProjectNames = new ListBox();
+            lbxProgrammerNames = new ListBox();
+            btnSettings = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvDetailView).BeginInit();
             ((System.ComponentModel.ISupportInitialize)mainScheduleGridViewBindingSource).BeginInit();
             ((System.ComponentModel.ISupportInitialize)mSProjectFieldsBindingSource).BeginInit();
@@ -71,21 +74,16 @@
             // 
             // dgvDetailView
             // 
+            dgvDetailView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvDetailView.AutoGenerateColumns = false;
             dgvDetailView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvDetailView.Columns.AddRange(new DataGridViewColumn[] { openDetailView, mSProjectGuidDataGridViewTextBoxColumn, projectNameDataGridViewTextBoxColumn, startDateDataGridViewTextBoxColumn, currentFinishDateDataGridViewTextBoxColumn, updatedFinishDateDataGridViewTextBoxColumn, currentPercentDataGridViewTextBoxColumn, updatedPercentDataGridViewTextBoxColumn, durationDataGridViewTextBoxColumn, notesDataGridViewTextBoxColumn, isModifiedDataGridViewCheckBoxColumn });
+            dgvDetailView.Columns.AddRange(new DataGridViewColumn[] { mSProjectGuidDataGridViewTextBoxColumn, projectNameDataGridViewTextBoxColumn, startDateDataGridViewTextBoxColumn, currentFinishDateDataGridViewTextBoxColumn, updatedFinishDateDataGridViewTextBoxColumn, currentPercentDataGridViewTextBoxColumn, updatedPercentDataGridViewTextBoxColumn, durationDataGridViewTextBoxColumn, notesDataGridViewTextBoxColumn, isModifiedDataGridViewCheckBoxColumn, openDetailView });
             dgvDetailView.DataSource = mainScheduleGridViewBindingSource;
-            dgvDetailView.Location = new Point(344, 102);
+            dgvDetailView.Location = new Point(404, 102);
             dgvDetailView.Name = "dgvDetailView";
-            dgvDetailView.Size = new Size(1150, 874);
+            dgvDetailView.Size = new Size(1090, 874);
             dgvDetailView.TabIndex = 0;
-            // 
-            // openDetailView
-            // 
-            openDetailView.HeaderText = "Detail View";
-            openDetailView.Name = "openDetailView";
-            openDetailView.Text = "View";
-            openDetailView.UseColumnTextForButtonValue = true;
+            dgvDetailView.CellValueChanged += dgvDetailView_CellValueChanged;
             // 
             // mSProjectGuidDataGridViewTextBoxColumn
             // 
@@ -107,9 +105,9 @@
             // startDateDataGridViewTextBoxColumn
             // 
             startDateDataGridViewTextBoxColumn.DataPropertyName = "StartDate";
-            dataGridViewCellStyle6.Format = "MM/dd/yyyy";
-            dataGridViewCellStyle6.NullValue = null;
-            startDateDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle6;
+            dataGridViewCellStyle1.Format = "MM/dd/yyyy";
+            dataGridViewCellStyle1.NullValue = null;
+            startDateDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle1;
             startDateDataGridViewTextBoxColumn.HeaderText = "Start Date";
             startDateDataGridViewTextBoxColumn.Name = "startDateDataGridViewTextBoxColumn";
             startDateDataGridViewTextBoxColumn.ReadOnly = true;
@@ -117,9 +115,9 @@
             // currentFinishDateDataGridViewTextBoxColumn
             // 
             currentFinishDateDataGridViewTextBoxColumn.DataPropertyName = "CurrentFinishDate";
-            dataGridViewCellStyle7.Format = "MM/dd/yyyy";
-            dataGridViewCellStyle7.NullValue = null;
-            currentFinishDateDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle7;
+            dataGridViewCellStyle2.Format = "MM/dd/yyyy";
+            dataGridViewCellStyle2.NullValue = null;
+            currentFinishDateDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle2;
             currentFinishDateDataGridViewTextBoxColumn.HeaderText = "Current Finish Date";
             currentFinishDateDataGridViewTextBoxColumn.Name = "currentFinishDateDataGridViewTextBoxColumn";
             currentFinishDateDataGridViewTextBoxColumn.ReadOnly = true;
@@ -127,18 +125,18 @@
             // updatedFinishDateDataGridViewTextBoxColumn
             // 
             updatedFinishDateDataGridViewTextBoxColumn.DataPropertyName = "UpdatedFinishDate";
-            dataGridViewCellStyle8.Format = "MM/dd/yyyy";
-            dataGridViewCellStyle8.NullValue = null;
-            updatedFinishDateDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle8;
+            dataGridViewCellStyle3.Format = "MM/dd/yyyy";
+            dataGridViewCellStyle3.NullValue = null;
+            updatedFinishDateDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle3;
             updatedFinishDateDataGridViewTextBoxColumn.HeaderText = "Updated Finish Date";
             updatedFinishDateDataGridViewTextBoxColumn.Name = "updatedFinishDateDataGridViewTextBoxColumn";
             // 
             // currentPercentDataGridViewTextBoxColumn
             // 
             currentPercentDataGridViewTextBoxColumn.DataPropertyName = "CurrentPercent";
-            dataGridViewCellStyle9.Format = "0'%'";
-            dataGridViewCellStyle9.NullValue = null;
-            currentPercentDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle9;
+            dataGridViewCellStyle4.Format = "0'%'";
+            dataGridViewCellStyle4.NullValue = null;
+            currentPercentDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle4;
             currentPercentDataGridViewTextBoxColumn.HeaderText = "Current %";
             currentPercentDataGridViewTextBoxColumn.Name = "currentPercentDataGridViewTextBoxColumn";
             currentPercentDataGridViewTextBoxColumn.ReadOnly = true;
@@ -146,8 +144,8 @@
             // updatedPercentDataGridViewTextBoxColumn
             // 
             updatedPercentDataGridViewTextBoxColumn.DataPropertyName = "UpdatedPercent";
-            dataGridViewCellStyle10.Format = "0'%'";
-            updatedPercentDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle10;
+            dataGridViewCellStyle5.Format = "0'%'";
+            updatedPercentDataGridViewTextBoxColumn.DefaultCellStyle = dataGridViewCellStyle5;
             updatedPercentDataGridViewTextBoxColumn.HeaderText = "Updated %";
             updatedPercentDataGridViewTextBoxColumn.Name = "updatedPercentDataGridViewTextBoxColumn";
             // 
@@ -170,6 +168,13 @@
             isModifiedDataGridViewCheckBoxColumn.Name = "isModifiedDataGridViewCheckBoxColumn";
             isModifiedDataGridViewCheckBoxColumn.ReadOnly = true;
             // 
+            // openDetailView
+            // 
+            openDetailView.HeaderText = "Detail View";
+            openDetailView.Name = "openDetailView";
+            openDetailView.Text = "View";
+            openDetailView.UseColumnTextForButtonValue = true;
+            // 
             // mainScheduleGridViewBindingSource
             // 
             mainScheduleGridViewBindingSource.DataSource = typeof(MainScheduleGridView);
@@ -184,7 +189,7 @@
             // 
             // btnRefresh
             // 
-            btnRefresh.Location = new Point(763, 63);
+            btnRefresh.Location = new Point(823, 63);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(108, 33);
             btnRefresh.TabIndex = 1;
@@ -263,7 +268,7 @@
             gbxRange.Controls.Add(dtpStart);
             gbxRange.Controls.Add(dtpEnd);
             gbxRange.Font = new Font("Segoe UI", 18F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            gbxRange.Location = new Point(344, 12);
+            gbxRange.Location = new Point(404, 12);
             gbxRange.Name = "gbxRange";
             gbxRange.Size = new Size(413, 84);
             gbxRange.TabIndex = 8;
@@ -284,11 +289,46 @@
             toolStripProgressBar1.Name = "toolStripProgressBar1";
             toolStripProgressBar1.Size = new Size(100, 16);
             // 
+            // lbxProjectNames
+            // 
+            lbxProjectNames.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            lbxProjectNames.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lbxProjectNames.FormattingEnabled = true;
+            lbxProjectNames.HorizontalScrollbar = true;
+            lbxProjectNames.Location = new Point(208, 132);
+            lbxProjectNames.Name = "lbxProjectNames";
+            lbxProjectNames.Size = new Size(190, 650);
+            lbxProjectNames.TabIndex = 10;
+            // 
+            // lbxProgrammerNames
+            // 
+            lbxProgrammerNames.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            lbxProgrammerNames.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lbxProgrammerNames.FormattingEnabled = true;
+            lbxProgrammerNames.Location = new Point(12, 132);
+            lbxProgrammerNames.Name = "lbxProgrammerNames";
+            lbxProgrammerNames.Size = new Size(190, 650);
+            lbxProgrammerNames.TabIndex = 11;
+            // 
+            // btnSettings
+            // 
+            btnSettings.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            btnSettings.Location = new Point(1386, 63);
+            btnSettings.Name = "btnSettings";
+            btnSettings.Size = new Size(108, 33);
+            btnSettings.TabIndex = 12;
+            btnSettings.Text = "Settings";
+            btnSettings.UseVisualStyleBackColor = true;
+            btnSettings.Click += btnSettings_Click;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1506, 1001);
+            Controls.Add(btnSettings);
+            Controls.Add(lbxProgrammerNames);
+            Controls.Add(lbxProjectNames);
             Controls.Add(statusStrip1);
             Controls.Add(gbxRange);
             Controls.Add(lblModifiedCount);
@@ -296,6 +336,7 @@
             Controls.Add(btnRefresh);
             Controls.Add(dgvDetailView);
             Name = "Form1";
+            StartPosition = FormStartPosition.CenterScreen;
             Text = "Form1";
             Load += Form1_Load;
             ((System.ComponentModel.ISupportInitialize)dgvDetailView).EndInit();
@@ -314,9 +355,6 @@
         #endregion
 
         private DataGridView dgvDetailView;
-        private DataGridViewTextBoxColumn nameDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn startDataGridViewTextBoxColumn;
-        private DataGridViewTextBoxColumn finishDataGridViewTextBoxColumn;
         private BindingSource projectTaskBindingSource;
         private Button btnRefresh;
         private BindingSource mSProjectFieldsBindingSource;
@@ -342,5 +380,8 @@
         private DataGridViewCheckBoxColumn isModifiedDataGridViewCheckBoxColumn;
         private StatusStrip statusStrip1;
         private ToolStripProgressBar toolStripProgressBar1;
+        private ListBox lbxProjectNames;
+        private ListBox lbxProgrammerNames;
+        private Button btnSettings;
     }
 }
