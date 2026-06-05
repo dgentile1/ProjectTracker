@@ -216,12 +216,14 @@
             // 
             // dtpStart
             // 
+            dtpStart.CustomFormat = "MM/dd/yyyy";
             dtpStart.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            dtpStart.Format = DateTimePickerFormat.Short;
+            dtpStart.Format = DateTimePickerFormat.Custom;
             dtpStart.Location = new Point(59, 38);
             dtpStart.Name = "dtpStart";
             dtpStart.Size = new Size(150, 29);
             dtpStart.TabIndex = 4;
+            dtpStart.Value = new DateTime(2026, 6, 5, 0, 0, 0, 0);
             // 
             // dtpEnd
             // 
