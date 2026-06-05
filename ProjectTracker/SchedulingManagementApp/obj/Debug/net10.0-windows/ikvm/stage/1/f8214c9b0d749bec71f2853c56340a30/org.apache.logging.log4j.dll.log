@@ -1,6 +1,0 @@
-trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\f8214c9b0d749bec71f2853c56340a30\org.apache.logging.log4j.dll.rsp
-warning IKVM0101: Unable to compile class "META-INF.versions.9.org.apache.logging.log4j.util.Base64Util". (class format error "53.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.9.org.apache.logging.log4j.util.ProcessIdUtil". (class format error "53.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.9.org.apache.logging.log4j.util.StackLocator". (class format error "53.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.9.org.apache.logging.log4j.util.internal.DefaultObjectInputFilter". (class format error "53.0")
-warning IKVM0101: Unable to compile class "module-info". (class format error "53.0")

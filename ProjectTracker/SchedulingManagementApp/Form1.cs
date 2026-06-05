@@ -69,11 +69,11 @@ namespace ProjectTracker
                 await client.GetStringAsync(githubApiUrl);
 
             GitHubFileResponse fileInfo = JsonSerializer.Deserialize<GitHubFileResponse>(
-                    json,
-                    new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true
-                    });
+                json,
+                new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                }) ?? throw new InvalidOperationException("Failed to deserialize GitHub file response.");
 
             if (string.IsNullOrWhiteSpace(fileInfo?.Download_Url))
             {

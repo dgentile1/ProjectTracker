@@ -1,2 +1,0 @@
-trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\9c438b034d1dbe2b8f7187f22dfbbd20\org.osgi.namespace.service.dll.rsp
-warning IKVM0100: Class "org.osgi.resource.Namespace" not found.

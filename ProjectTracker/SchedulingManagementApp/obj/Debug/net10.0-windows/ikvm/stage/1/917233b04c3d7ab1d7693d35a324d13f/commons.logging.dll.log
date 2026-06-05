@@ -1,8 +1,0 @@
-trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\917233b04c3d7ab1d7693d35a324d13f\commons.logging.dll.rsp
-warning IKVM0100: Class "javax.servlet.ServletContextListener" not found.
-warning IKVM0100: Class "org.apache.log4j.Logger" not found.
-warning IKVM0100: Class "org.apache.log4j.Level" not found.
-warning IKVM0100: Class "org.apache.log4j.Priority" not found.
-warning IKVM0100: Class "org.apache.log.Hierarchy" not found.
-warning IKVM0100: Class "org.apache.log.Logger" not found.
-warning IKVM0100: Class "org.apache.avalon.framework.logger.Logger" not found.

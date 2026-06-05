@@ -1,2 +1,0 @@
-trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\d75513dc1a24c7824c3b518593399b7d\org.apache.commons.collections4.dll.rsp
-warning IKVM0101: Unable to compile class "META-INF.versions.9.module-info". (class format error "53.0")

@@ -1,9 +1,0 @@
-trace IKVM-0001: Executing C:\Users\derrickg\.nuget\packages\ikvm.msbuild.tools.runtime.win-x64\8.15.0\ikvmc\net10.0\win-x64\ikvmc.exe @C:\Repository_VS\SchedulingManagementApp\SchedulingManagementApp\obj\Debug\net10.0-windows\ikvm\stage\1\2a273e0fb26ab6e1ffb086279cb1fd0c\jackson.core.dll.rsp
-warning IKVM0101: Unable to compile class "META-INF.versions.9.module-info". (class format error "53.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.11.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.BigSignificand". (class format error "55.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.11.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.FastDoubleSwar". (class format error "55.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.11.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.FastIntegerMath". (class format error "55.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.17.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.FastDoubleSwar". (class format error "61.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.17.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.FastIntegerMath". (class format error "61.0")
-warning IKVM0101: Unable to compile class "META-INF.versions.21.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.FastDoubleSwar". (class format error "Unsupported class version 65.0.")
-warning IKVM0101: Unable to compile class "META-INF.versions.21.com.fasterxml.jackson.core.internal.shaded.fdp.v2_21_1.FastIntegerMath". (class format error "Unsupported class version 65.0.")
