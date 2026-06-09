@@ -30,9 +30,9 @@
         {
             btnAdd = new Button();
             btnRemove = new Button();
-            btnCancel = new Button();
-            btnSave = new Button();
+            btnClose = new Button();
             lbxProgrammers = new ListBox();
+            btnSave = new Button();
             SuspendLayout();
             // 
             // btnAdd
@@ -53,16 +53,27 @@
             btnRemove.TabIndex = 1;
             btnRemove.Text = "Remove";
             btnRemove.UseVisualStyleBackColor = true;
+            btnRemove.Click += btnRemove_Click;
             // 
-            // btnCancel
+            // btnClose
             // 
-            btnCancel.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
-            btnCancel.Location = new Point(346, 412);
-            btnCancel.Name = "btnCancel";
-            btnCancel.Size = new Size(95, 26);
-            btnCancel.TabIndex = 2;
-            btnCancel.Text = "Cancel";
-            btnCancel.UseVisualStyleBackColor = true;
+            btnClose.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
+            btnClose.Location = new Point(346, 412);
+            btnClose.Name = "btnClose";
+            btnClose.Size = new Size(95, 26);
+            btnClose.TabIndex = 2;
+            btnClose.Text = "Close";
+            btnClose.UseVisualStyleBackColor = true;
+            // 
+            // lbxProgrammers
+            // 
+            lbxProgrammers.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            lbxProgrammers.FormattingEnabled = true;
+            lbxProgrammers.HorizontalScrollbar = true;
+            lbxProgrammers.Location = new Point(12, 15);
+            lbxProgrammers.Name = "lbxProgrammers";
+            lbxProgrammers.Size = new Size(203, 319);
+            lbxProgrammers.TabIndex = 4;
             // 
             // btnSave
             // 
@@ -75,16 +86,6 @@
             btnSave.UseVisualStyleBackColor = true;
             btnSave.Click += btnSave_Click;
             // 
-            // lbxProgrammers
-            // 
-            lbxProgrammers.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            lbxProgrammers.FormattingEnabled = true;
-            lbxProgrammers.HorizontalScrollbar = true;
-            lbxProgrammers.Location = new Point(12, 15);
-            lbxProgrammers.Name = "lbxProgrammers";
-            lbxProgrammers.Size = new Size(203, 319);
-            lbxProgrammers.TabIndex = 4;
-            // 
             // frmSettings
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -92,7 +93,7 @@
             ClientSize = new Size(453, 450);
             Controls.Add(lbxProgrammers);
             Controls.Add(btnSave);
-            Controls.Add(btnCancel);
+            Controls.Add(btnClose);
             Controls.Add(btnRemove);
             Controls.Add(btnAdd);
             Name = "frmSettings";
@@ -105,8 +106,8 @@
 
         private Button btnAdd;
         private Button btnRemove;
-        private Button btnCancel;
-        private Button btnSave;
+        private Button btnClose;
         private ListBox lbxProgrammers;
+        private Button btnSave;
     }
 }

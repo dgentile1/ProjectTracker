@@ -56,15 +56,32 @@ namespace ProjectTracker
                 string outJson = JsonSerializer.Serialize(list, JsonOptions);
                 await File.WriteAllTextAsync(filePath, outJson);
 
-                MessageBox.Show($"User saved to {filePath}", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //MessageBox.Show($"User saved to {filePath}", "Saved", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                //this.DialogResult = DialogResult.OK;
 
-                this.DialogResult = DialogResult.OK;
-                this.Close();
+                if (ckbxKeepOpen.Checked)
+                {
+                    tbxFirstName.Text = "";
+                    tbxLastName.Text = "";
+                    tbxFirstName.Focus();
+                }
+                else
+                {
+                    
+                    this.Close();
+                }
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"Failed to save user: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
+        private void btnCancel_Click(object sender, EventArgs e)
+        {
+            //this.DialogResult = DialogResult.OK;
+            this.Close();
+        }
+
     }
 }

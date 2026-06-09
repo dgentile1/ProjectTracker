@@ -16,16 +16,21 @@ namespace ProjectTracker
 
         public int CurrentPercent { get; set; }
 
+
         // From JSON
+        public string? ProgrammersName { get; set; }
         public DateTime? UpdatedFinishDate { get; set; }
 
         public int? UpdatedPercent { get; set; }
-
-        public double? Duration { get; set; }
+        public DateTime? TestingStartDate { get; set; }
+        public int? TestingPercent { get; set; }
+        public bool? ReleasedChecked { get; set; }
+        public DateTime? ReleasedDate { get; set; }
 
         public string Notes { get; set; }
 
         public bool IsModified =>
+
             UpdatedFinishDate != null ||
             UpdatedPercent != null ||
             !string.IsNullOrWhiteSpace(Notes);

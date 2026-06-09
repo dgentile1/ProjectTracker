@@ -34,6 +34,7 @@
             label2 = new Label();
             btnCancel = new Button();
             btnSave = new Button();
+            ckbxKeepOpen = new CheckBox();
             SuspendLayout();
             // 
             // tbxFirstName
@@ -76,6 +77,7 @@
             btnCancel.TabIndex = 7;
             btnCancel.Text = "Cancel";
             btnCancel.UseVisualStyleBackColor = true;
+            btnCancel.Click += btnCancel_Click;
             // 
             // btnSave
             // 
@@ -87,11 +89,22 @@
             btnSave.UseVisualStyleBackColor = true;
             btnSave.Click += btnSave_Click;
             // 
+            // ckbxKeepOpen
+            // 
+            ckbxKeepOpen.AutoSize = true;
+            ckbxKeepOpen.Location = new Point(12, 93);
+            ckbxKeepOpen.Name = "ckbxKeepOpen";
+            ckbxKeepOpen.Size = new Size(130, 19);
+            ckbxKeepOpen.TabIndex = 8;
+            ckbxKeepOpen.Text = "Keep Open On Save";
+            ckbxKeepOpen.UseVisualStyleBackColor = true;
+            // 
             // frmAddUser
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(675, 120);
+            Controls.Add(ckbxKeepOpen);
             Controls.Add(btnCancel);
             Controls.Add(btnSave);
             Controls.Add(label2);
@@ -112,5 +125,6 @@
         private Label label2;
         private Button btnCancel;
         private Button btnSave;
+        private CheckBox ckbxKeepOpen;
     }
 }

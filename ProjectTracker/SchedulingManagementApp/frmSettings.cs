@@ -177,18 +177,18 @@ namespace ProjectTracker
             //{
             //    MessageBox.Show($"Failed to save programmers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             //}
-        
+
         }
 
         private async void btnAdd_Click(object sender, EventArgs e)
         {
             frmAddUser addUser = new frmAddUser();
             var result = addUser.ShowDialog();
-            // If a new user was added, reload the list so the UI updates
-            if (result == DialogResult.OK)
-            {
+            //// If a new user was added, reload the list so the UI updates
+            //if (result == DialogResult.OK)
+            //{
                 await LoadProgrammersAsync();
-            }
+            //}
         }
 
         private async Task LoadProgrammersAsync()
@@ -217,6 +217,51 @@ namespace ProjectTracker
                 lbxProgrammers.Items.Add(p);
             }
             lbxProgrammers.EndUpdate();
+        }
+
+        private async void btnRemove_Click(object sender, EventArgs e)
+        {
+            if (lbxProgrammers.SelectedItem == null)
+            {
+                MessageBox.Show("Please select a programmer to remove.", "No Selection", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var selected = lbxProgrammers.SelectedItem;
+            string displayName = selected is Programmers p
+                ? (string.IsNullOrWhiteSpace(p.LastName) ? p.FirstName : $"{p.FirstName} {p.LastName}")
+                : selected.ToString();
+
+            var result = MessageBox.Show(
+                $"Are you sure you want to remove '{displayName}' from the programmer list?",
+                "Confirm Removal",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
+
+            if (result == DialogResult.Yes)
+            {
+                lbxProgrammers.Items.Remove(selected);
+                MessageBox.Show($"'{displayName}' has been removed.", "Removed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // Build list from remaining ListBox items and save to Desktop
+                var list = new List<Programmers>();
+                foreach (var item in lbxProgrammers.Items)
+                {
+                    if (item is Programmers prog)
+                    {
+                        list.Add(prog);
+                    }
+                }
+
+                try
+                {
+                    await SaveToDesktopAsync(list);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Failed to save programmers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
     }
 }

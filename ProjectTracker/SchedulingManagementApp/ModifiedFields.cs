@@ -7,13 +7,13 @@ namespace ProjectTracker
     internal class ModifiedFields
     {
         public Guid TaskGuid { get; set; }
-        public string Programmer { get; set; }
-        public string ProjectName { get; set; }
+        public string? Programmer { get; set; }
+        public string? ProjectName { get; set; }
         public DateTime? CurrentFinishDate { get; set; }
         public DateTime? UpdatedFinishDate { get; set; }
         public int CurrentPercent { get; set; }
         public int? UpdatedPercent { get; set; }
-        public string Notes { get; set; }
+        public string? Notes { get; set; }
 
         public bool NeedsUpdate =>
             CurrentFinishDate != UpdatedFinishDate ||
