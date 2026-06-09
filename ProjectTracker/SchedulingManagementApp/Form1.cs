@@ -19,6 +19,12 @@ namespace ProjectTracker
         private List<MainScheduleGridView> _allRows = new();
         private List<string> _programmerList = new();
 
+        //For Tool Tip Delay
+        private readonly System.Windows.Forms.Timer _notesToolTipTimer = new System.Windows.Forms.Timer();
+        private DataGridViewCell? _hoverCell;
+        private int _notesToolTipDelayMs = 1250; // 1.25 second delay before showing tooltip, adjust as needed
+        private readonly ToolTip _toolTip = new();
+
         public Form1()
         {
             InitializeComponent();
@@ -38,6 +44,29 @@ namespace ProjectTracker
             refreshTimer.Start();
             dtpStart.Value = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             dtpEnd.Value = dtpStart.Value.AddMonths(1).AddDays(-1);
+
+            //ToolTip setup ----------------------------------------
+            dgvDetailView.ShowCellToolTips = false; // disable built-in tooltips
+
+            // configure an existing designer ToolTip named `_toolTip` (or create one)
+            _toolTip.InitialDelay = 0;
+            _toolTip.ReshowDelay = 100;
+            _toolTip.AutoPopDelay = 5000;
+            _toolTip.ShowAlways = true;
+
+            // timer for delayed show
+            _notesToolTipTimer.Interval = _notesToolTipDelayMs;
+            _notesToolTipTimer.Tick += NotesToolTipTimer_Tick;
+
+            // wire DataGridView events
+            dgvDetailView.CellMouseEnter += dgvDetailView_CellMouseEnter;
+            dgvDetailView.CellMouseLeave += dgvDetailView_CellMouseLeave;
+            dgvDetailView.Scroll += (_, _) =>
+            {
+                _notesToolTipTimer.Stop();
+                _toolTip.Hide(dgvDetailView);
+            };
+            //-------------------------------------------------------
         }
 
         private async void Form1_Load(object sender, EventArgs e)
@@ -529,6 +558,39 @@ namespace ProjectTracker
             {
                 MessageBox.Show($"Save failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }    
+        }
+
+        //ToolTip event handlers --------------------------------
+        private void dgvDetailView_CellMouseEnter(object? sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+            if (!string.Equals(dgvDetailView.Columns[e.ColumnIndex].Name, "Notes", StringComparison.OrdinalIgnoreCase))
+                return;
+
+            _hoverCell = dgvDetailView.Rows[e.RowIndex].Cells[e.ColumnIndex];
+            _notesToolTipTimer.Stop();
+            _notesToolTipTimer.Start();
+        }
+
+        private void dgvDetailView_CellMouseLeave(object? sender, DataGridViewCellEventArgs e)
+        {
+            _notesToolTipTimer.Stop();
+            _toolTip.Hide(dgvDetailView);
+            _hoverCell = null;
+        }
+
+        private void NotesToolTipTimer_Tick(object? sender, EventArgs e)
+        {
+            _notesToolTipTimer.Stop();
+            if (_hoverCell == null) return;
+
+            string text = _hoverCell.Value?.ToString() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(text)) return;
+
+            var rect = dgvDetailView.GetCellDisplayRectangle(_hoverCell.ColumnIndex, _hoverCell.RowIndex, true);
+            var location = new Point(rect.Left + 4, rect.Bottom);
+            _toolTip.Show(text, dgvDetailView, location, _toolTip.AutoPopDelay);
+        }
+        //-------------------------------------------------------
     }
 }
