@@ -182,7 +182,7 @@ namespace ProjectTracker
                             ProjectName = parent.Name,           // Level 1 name
                             StartDate = dateSource?.Start,          // Level 2 date
                             CurrentFinishDate = dateSource?.Finish,        // Level 2 date
-                            CurrentPercent = (int)(dateSource?.PercentageComplete)
+                            CurrentPercent = (int)(dateSource?.PercentageComplete ?? 0)
                         };
                     })
                     .ToList();
@@ -209,13 +209,13 @@ namespace ProjectTracker
                     if (row.MSProjectGuid.HasValue &&
                         modifications.TryGetValue(
                             row.MSProjectGuid.Value,
-                            out ProjectModification mod))
+                            out ProjectModification ? mod))
                     {
                         row.ProgrammersName = mod.ProgrammersName;
                         row.UpdatedFinishDate = mod.UpdatedFinishDate;
                         row.UpdatedPercent = mod.UpdatedPercent;
                         row.TestingPercent = mod.TestingPercent;
-                        row.Notes = mod.Notes;
+                        row.Notes = mod.Notes ?? string.Empty;
                     }
                 }
 
