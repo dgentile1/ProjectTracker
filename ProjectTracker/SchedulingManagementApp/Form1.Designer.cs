@@ -38,7 +38,24 @@
             DataGridViewCellStyle dataGridViewCellStyle7 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle8 = new DataGridViewCellStyle();
             DataGridViewCellStyle dataGridViewCellStyle9 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle10 = new DataGridViewCellStyle();
+            DataGridViewCellStyle dataGridViewCellStyle11 = new DataGridViewCellStyle();
             dgvDetailView = new DataGridView();
+            MSProjectGuid = new DataGridViewTextBoxColumn();
+            ProgrammersName = new DataGridViewComboBoxColumn();
+            ProjectName = new DataGridViewTextBoxColumn();
+            StartDate = new DataGridViewTextBoxColumn();
+            CurrentFinishDate = new DataGridViewTextBoxColumn();
+            UpdatedFinishDate = new DataGridViewTextBoxColumn();
+            CurrentPercent = new DataGridViewTextBoxColumn();
+            UpdatedPercent = new DataGridViewTextBoxColumn();
+            TestingStartDate = new DataGridViewTextBoxColumn();
+            TestingPercent = new DataGridViewTextBoxColumn();
+            ReleasedDate = new DataGridViewTextBoxColumn();
+            ReleasedChecked = new DataGridViewCheckBoxColumn();
+            Notes = new DataGridViewTextBoxColumn();
+            isModified = new DataGridViewCheckBoxColumn();
+            DetailView = new DataGridViewButtonColumn();
             mainScheduleGridViewBindingSource = new BindingSource(components);
             mSProjectFieldsBindingSource = new BindingSource(components);
             projectTaskBindingSource = new BindingSource(components);
@@ -59,21 +76,10 @@
             cklbxProgrammersNames = new CheckedListBox();
             cklbxProjectNames = new CheckedListBox();
             btnSave = new Button();
-            MSProjectGuid = new DataGridViewTextBoxColumn();
-            ProgrammersName = new DataGridViewComboBoxColumn();
-            ProjectName = new DataGridViewTextBoxColumn();
-            StartDate = new DataGridViewTextBoxColumn();
-            CurrentFinishDate = new DataGridViewTextBoxColumn();
-            UpdatedFinishDate = new DataGridViewTextBoxColumn();
-            CurrentPercent = new DataGridViewTextBoxColumn();
-            UpdatedPercent = new DataGridViewTextBoxColumn();
-            TestingStartDate = new DataGridViewTextBoxColumn();
-            TestingPercent = new DataGridViewTextBoxColumn();
-            ReleasedDate = new DataGridViewTextBoxColumn();
-            ReleasedChecked = new DataGridViewCheckBoxColumn();
-            Notes = new DataGridViewTextBoxColumn();
-            isModified = new DataGridViewCheckBoxColumn();
-            DetailView = new DataGridViewButtonColumn();
+            btnRevert = new Button();
+            btnModifiedReport = new Button();
+            tbxSearchProgrammers = new TextBox();
+            tbxSearchProjects = new TextBox();
             ((System.ComponentModel.ISupportInitialize)dgvDetailView).BeginInit();
             ((System.ComponentModel.ISupportInitialize)mainScheduleGridViewBindingSource).BeginInit();
             ((System.ComponentModel.ISupportInitialize)mSProjectFieldsBindingSource).BeginInit();
@@ -86,6 +92,7 @@
             // 
             // dgvDetailView
             // 
+            dgvDetailView.AllowUserToAddRows = false;
             dgvDetailView.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dgvDetailView.AutoGenerateColumns = false;
             dataGridViewCellStyle1.Alignment = DataGridViewContentAlignment.MiddleCenter;
@@ -101,11 +108,175 @@
             dgvDetailView.DataSource = mainScheduleGridViewBindingSource;
             dgvDetailView.Location = new Point(448, 102);
             dgvDetailView.Name = "dgvDetailView";
-            dgvDetailView.RowHeadersWidth = 62;
+            dgvDetailView.RowHeadersWidth = 20;
             dgvDetailView.Size = new Size(1387, 747);
             dgvDetailView.TabIndex = 0;
+            dgvDetailView.CellBeginEdit += dgvDetailView_CellBeginEdit;
             dgvDetailView.CellEndEdit += dgvDetailView_CellEndEdit;
             dgvDetailView.CellValueChanged += dgvDetailView_CellValueChanged;
+            dgvDetailView.EditingControlShowing += dgvDetailView_EditingControlShowing;
+            // 
+            // MSProjectGuid
+            // 
+            MSProjectGuid.DataPropertyName = "MSProjectGuid";
+            dataGridViewCellStyle2.Format = "MM/dd/yyyy";
+            dataGridViewCellStyle2.NullValue = null;
+            MSProjectGuid.DefaultCellStyle = dataGridViewCellStyle2;
+            MSProjectGuid.HeaderText = "MSProjectGuid";
+            MSProjectGuid.Name = "MSProjectGuid";
+            MSProjectGuid.Visible = false;
+            // 
+            // ProgrammersName
+            // 
+            ProgrammersName.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            ProgrammersName.DataPropertyName = "ProgrammersName";
+            ProgrammersName.HeaderText = "Programmers Name";
+            ProgrammersName.Name = "ProgrammersName";
+            ProgrammersName.Width = 108;
+            // 
+            // ProjectName
+            // 
+            ProjectName.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
+            ProjectName.DataPropertyName = "ProjectName";
+            ProjectName.DividerWidth = 5;
+            ProjectName.HeaderText = "Project Name";
+            ProjectName.Name = "ProjectName";
+            ProjectName.ReadOnly = true;
+            ProjectName.Width = 5;
+            // 
+            // StartDate
+            // 
+            StartDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            StartDate.DataPropertyName = "StartDate";
+            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle3.Format = "MM/dd/yyyy";
+            StartDate.DefaultCellStyle = dataGridViewCellStyle3;
+            StartDate.HeaderText = "Emb. Start Date";
+            StartDate.Name = "StartDate";
+            StartDate.ReadOnly = true;
+            StartDate.Width = 104;
+            // 
+            // CurrentFinishDate
+            // 
+            CurrentFinishDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            CurrentFinishDate.DataPropertyName = "CurrentFinishDate";
+            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle4.Format = "MM/dd/yyyy";
+            CurrentFinishDate.DefaultCellStyle = dataGridViewCellStyle4;
+            CurrentFinishDate.HeaderText = "Curr. Emb. Finish Date";
+            CurrentFinishDate.Name = "CurrentFinishDate";
+            CurrentFinishDate.ReadOnly = true;
+            CurrentFinishDate.Width = 115;
+            // 
+            // UpdatedFinishDate
+            // 
+            UpdatedFinishDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            UpdatedFinishDate.DataPropertyName = "UpdatedFinishDate";
+            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle5.Format = "MM/dd/yyyy";
+            UpdatedFinishDate.DefaultCellStyle = dataGridViewCellStyle5;
+            UpdatedFinishDate.HeaderText = "Updated Finish Date";
+            UpdatedFinishDate.Name = "UpdatedFinishDate";
+            UpdatedFinishDate.Visible = false;
+            // 
+            // CurrentPercent
+            // 
+            CurrentPercent.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            CurrentPercent.DataPropertyName = "CurrentPercent";
+            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle6.Format = "0\\%";
+            dataGridViewCellStyle6.NullValue = "0%";
+            CurrentPercent.DefaultCellStyle = dataGridViewCellStyle6;
+            CurrentPercent.HeaderText = "Curr. Emb. %";
+            CurrentPercent.MinimumWidth = 65;
+            CurrentPercent.Name = "CurrentPercent";
+            CurrentPercent.ReadOnly = true;
+            CurrentPercent.Width = 84;
+            // 
+            // UpdatedPercent
+            // 
+            UpdatedPercent.DataPropertyName = "UpdatedPercent";
+            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle7.Format = "0\\%";
+            dataGridViewCellStyle7.NullValue = "0%";
+            UpdatedPercent.DefaultCellStyle = dataGridViewCellStyle7;
+            UpdatedPercent.DividerWidth = 5;
+            UpdatedPercent.HeaderText = "Updated %";
+            UpdatedPercent.MinimumWidth = 60;
+            UpdatedPercent.Name = "UpdatedPercent";
+            UpdatedPercent.Width = 60;
+            // 
+            // TestingStartDate
+            // 
+            TestingStartDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            TestingStartDate.DataPropertyName = "TestingStartDate";
+            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle8.Format = "MM/dd/yyyy";
+            TestingStartDate.DefaultCellStyle = dataGridViewCellStyle8;
+            TestingStartDate.HeaderText = "Testing Start Date";
+            TestingStartDate.Name = "TestingStartDate";
+            TestingStartDate.Width = 92;
+            // 
+            // TestingPercent
+            // 
+            TestingPercent.DataPropertyName = "TestingPercent";
+            dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle9.Format = "0\\%";
+            dataGridViewCellStyle9.NullValue = "0%";
+            TestingPercent.DefaultCellStyle = dataGridViewCellStyle9;
+            TestingPercent.HeaderText = "Testing %";
+            TestingPercent.MinimumWidth = 60;
+            TestingPercent.Name = "TestingPercent";
+            TestingPercent.Width = 60;
+            // 
+            // ReleasedDate
+            // 
+            ReleasedDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
+            ReleasedDate.DataPropertyName = "ReleasedDate";
+            dataGridViewCellStyle10.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            dataGridViewCellStyle10.Format = "MM/dd/yyyy";
+            dataGridViewCellStyle10.NullValue = null;
+            ReleasedDate.DefaultCellStyle = dataGridViewCellStyle10;
+            ReleasedDate.HeaderText = "Released Date";
+            ReleasedDate.Name = "ReleasedDate";
+            ReleasedDate.ReadOnly = true;
+            ReleasedDate.Width = 97;
+            // 
+            // ReleasedChecked
+            // 
+            ReleasedChecked.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            ReleasedChecked.DataPropertyName = "ReleasedChecked";
+            ReleasedChecked.DividerWidth = 5;
+            ReleasedChecked.HeaderText = "Released";
+            ReleasedChecked.Name = "ReleasedChecked";
+            ReleasedChecked.Width = 64;
+            // 
+            // Notes
+            // 
+            Notes.AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+            Notes.DataPropertyName = "Notes";
+            dataGridViewCellStyle11.WrapMode = DataGridViewTriState.True;
+            Notes.DefaultCellStyle = dataGridViewCellStyle11;
+            Notes.HeaderText = "Notes";
+            Notes.MinimumWidth = 100;
+            Notes.Name = "Notes";
+            // 
+            // isModified
+            // 
+            isModified.DataPropertyName = "IsModified";
+            isModified.HeaderText = "IsModified";
+            isModified.Name = "isModified";
+            isModified.ReadOnly = true;
+            isModified.Visible = false;
+            // 
+            // DetailView
+            // 
+            DetailView.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            DetailView.HeaderText = "Detail View";
+            DetailView.Name = "DetailView";
+            DetailView.Text = "View";
+            DetailView.UseColumnTextForButtonValue = true;
+            DetailView.Width = 64;
             // 
             // mainScheduleGridViewBindingSource
             // 
@@ -286,159 +457,54 @@
             btnSave.UseVisualStyleBackColor = true;
             btnSave.Click += btnSave_Click;
             // 
-            // MSProjectGuid
+            // btnRevert
             // 
-            MSProjectGuid.DataPropertyName = "MSProjectGuid";
-            MSProjectGuid.HeaderText = "MSProjectGuid";
-            MSProjectGuid.Name = "MSProjectGuid";
-            MSProjectGuid.Visible = false;
+            btnRevert.Location = new Point(981, 63);
+            btnRevert.Name = "btnRevert";
+            btnRevert.Size = new Size(108, 33);
+            btnRevert.TabIndex = 18;
+            btnRevert.Text = "Revert";
+            btnRevert.UseVisualStyleBackColor = true;
+            btnRevert.Click += btnRevert_Click;
             // 
-            // ProgrammersName
+            // btnModifiedReport
             // 
-            ProgrammersName.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            ProgrammersName.DataPropertyName = "ProgrammersName";
-            ProgrammersName.HeaderText = "Programmers Name";
-            ProgrammersName.Name = "ProgrammersName";
-            ProgrammersName.Width = 108;
+            btnModifiedReport.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            btnModifiedReport.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnModifiedReport.Location = new Point(1695, 11);
+            btnModifiedReport.Name = "btnModifiedReport";
+            btnModifiedReport.Size = new Size(140, 46);
+            btnModifiedReport.TabIndex = 20;
+            btnModifiedReport.Text = "Modified Report";
+            btnModifiedReport.UseVisualStyleBackColor = true;
             // 
-            // ProjectName
+            // tbxSearchProgrammers
             // 
-            ProjectName.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
-            ProjectName.DataPropertyName = "ProjectName";
-            ProjectName.HeaderText = "Project Name";
-            ProjectName.Name = "ProjectName";
-            ProjectName.ReadOnly = true;
-            ProjectName.Width = 21;
+            tbxSearchProgrammers.Location = new Point(12, 73);
+            tbxSearchProgrammers.Name = "tbxSearchProgrammers";
+            tbxSearchProgrammers.PlaceholderText = "Search Programmers....";
+            tbxSearchProgrammers.Size = new Size(190, 23);
+            tbxSearchProgrammers.TabIndex = 21;
+            tbxSearchProgrammers.TextChanged += tbxSearchProgrammers_TextChanged;
             // 
-            // StartDate
+            // tbxSearchProjects
             // 
-            StartDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            StartDate.DataPropertyName = "StartDate";
-            dataGridViewCellStyle2.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle2.Format = "MM/dd/yyyy";
-            StartDate.DefaultCellStyle = dataGridViewCellStyle2;
-            StartDate.HeaderText = "Emb. Start Date";
-            StartDate.Name = "StartDate";
-            StartDate.ReadOnly = true;
-            StartDate.Width = 104;
-            // 
-            // CurrentFinishDate
-            // 
-            CurrentFinishDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            CurrentFinishDate.DataPropertyName = "CurrentFinishDate";
-            dataGridViewCellStyle3.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle3.Format = "MM/dd/yyyy";
-            CurrentFinishDate.DefaultCellStyle = dataGridViewCellStyle3;
-            CurrentFinishDate.HeaderText = "Curr. Emb. Finish Date";
-            CurrentFinishDate.Name = "CurrentFinishDate";
-            CurrentFinishDate.ReadOnly = true;
-            CurrentFinishDate.Width = 115;
-            // 
-            // UpdatedFinishDate
-            // 
-            UpdatedFinishDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            UpdatedFinishDate.DataPropertyName = "UpdatedFinishDate";
-            dataGridViewCellStyle4.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle4.Format = "MM/dd/yyyy";
-            UpdatedFinishDate.DefaultCellStyle = dataGridViewCellStyle4;
-            UpdatedFinishDate.HeaderText = "Updated Finish Date";
-            UpdatedFinishDate.Name = "UpdatedFinishDate";
-            UpdatedFinishDate.Visible = false;
-            UpdatedFinishDate.Width = 105;
-            // 
-            // CurrentPercent
-            // 
-            CurrentPercent.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            CurrentPercent.DataPropertyName = "CurrentPercent";
-            dataGridViewCellStyle5.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            CurrentPercent.DefaultCellStyle = dataGridViewCellStyle5;
-            CurrentPercent.HeaderText = "Curr. Emb. %";
-            CurrentPercent.MinimumWidth = 65;
-            CurrentPercent.Name = "CurrentPercent";
-            CurrentPercent.ReadOnly = true;
-            CurrentPercent.Width = 84;
-            // 
-            // UpdatedPercent
-            // 
-            UpdatedPercent.DataPropertyName = "UpdatedPercent";
-            dataGridViewCellStyle6.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle6.Format = "0%";
-            dataGridViewCellStyle6.NullValue = null;
-            UpdatedPercent.DefaultCellStyle = dataGridViewCellStyle6;
-            UpdatedPercent.DividerWidth = 5;
-            UpdatedPercent.HeaderText = "Updated %";
-            UpdatedPercent.MinimumWidth = 60;
-            UpdatedPercent.Name = "UpdatedPercent";
-            UpdatedPercent.Width = 60;
-            // 
-            // TestingStartDate
-            // 
-            TestingStartDate.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCells;
-            TestingStartDate.DataPropertyName = "TestingStartDate";
-            dataGridViewCellStyle7.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle7.Format = "MM/dd/yyyy";
-            TestingStartDate.DefaultCellStyle = dataGridViewCellStyle7;
-            TestingStartDate.HeaderText = "Testing Start Date";
-            TestingStartDate.Name = "TestingStartDate";
-            TestingStartDate.Width = 92;
-            // 
-            // TestingPercent
-            // 
-            TestingPercent.DataPropertyName = "TestingPercent";
-            dataGridViewCellStyle8.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle8.Format = "0%";
-            TestingPercent.DefaultCellStyle = dataGridViewCellStyle8;
-            TestingPercent.HeaderText = "Testing %";
-            TestingPercent.MinimumWidth = 60;
-            TestingPercent.Name = "TestingPercent";
-            TestingPercent.Width = 60;
-            // 
-            // ReleasedDate
-            // 
-            ReleasedDate.DataPropertyName = "ReleasedDate";
-            ReleasedDate.HeaderText = "ReleasedDate";
-            ReleasedDate.Name = "ReleasedDate";
-            ReleasedDate.ReadOnly = true;
-            // 
-            // ReleasedChecked
-            // 
-            ReleasedChecked.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            ReleasedChecked.DataPropertyName = "ReleasedChecked";
-            ReleasedChecked.DividerWidth = 5;
-            ReleasedChecked.HeaderText = "Released";
-            ReleasedChecked.Name = "ReleasedChecked";
-            ReleasedChecked.Width = 64;
-            // 
-            // Notes
-            // 
-            Notes.DataPropertyName = "Notes";
-            dataGridViewCellStyle9.WrapMode = DataGridViewTriState.True;
-            Notes.DefaultCellStyle = dataGridViewCellStyle9;
-            Notes.HeaderText = "Notes";
-            Notes.Name = "Notes";
-            // 
-            // isModified
-            // 
-            isModified.DataPropertyName = "IsModified";
-            isModified.HeaderText = "IsModified";
-            isModified.Name = "isModified";
-            isModified.ReadOnly = true;
-            isModified.Visible = false;
-            // 
-            // DetailView
-            // 
-            DetailView.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
-            DetailView.HeaderText = "Detail View";
-            DetailView.Name = "DetailView";
-            DetailView.Text = "View";
-            DetailView.UseColumnTextForButtonValue = true;
-            DetailView.Width = 64;
+            tbxSearchProjects.Location = new Point(208, 73);
+            tbxSearchProjects.Name = "tbxSearchProjects";
+            tbxSearchProjects.PlaceholderText = "Search Projects....";
+            tbxSearchProjects.Size = new Size(234, 23);
+            tbxSearchProjects.TabIndex = 22;
+            tbxSearchProjects.TextChanged += tbxSearchProjects_TextChanged;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1847, 874);
+            Controls.Add(tbxSearchProjects);
+            Controls.Add(tbxSearchProgrammers);
+            Controls.Add(btnModifiedReport);
+            Controls.Add(btnRevert);
             Controls.Add(btnSave);
             Controls.Add(cklbxProjectNames);
             Controls.Add(cklbxProgrammersNames);
@@ -490,6 +556,7 @@
         private CheckedListBox cklbxProjectNames;
         private ToolStripStatusLabel toolStripStatusLabel1;
         private Button btnSave;
+        private Button btnRevert;
         private DataGridViewTextBoxColumn MSProjectGuid;
         private DataGridViewComboBoxColumn ProgrammersName;
         private DataGridViewTextBoxColumn ProjectName;
@@ -505,5 +572,8 @@
         private DataGridViewTextBoxColumn Notes;
         private DataGridViewCheckBoxColumn isModified;
         private DataGridViewButtonColumn DetailView;
+        private Button btnModifiedReport;
+        private TextBox tbxSearchProgrammers;
+        private TextBox tbxSearchProjects;
     }
 }

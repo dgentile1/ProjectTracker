@@ -18,12 +18,15 @@ namespace ProjectTracker
         private readonly System.Windows.Forms.Timer refreshTimer = new();
         private List<MainScheduleGridView> _allRows = new();
         private List<string> _programmerList = new();
+        private Dictionary<Guid, ProjectModification> _pendingChanges = new();
+        private Dictionary<Guid, ProjectModification> _savedModifications = new();
 
         //For Tool Tip Delay
         private readonly System.Windows.Forms.Timer _notesToolTipTimer = new System.Windows.Forms.Timer();
         private DataGridViewCell? _hoverCell;
         private int _notesToolTipDelayMs = 1250; // 1.25 second delay before showing tooltip, adjust as needed
         private readonly ToolTip _toolTip = new();
+        private object? _cellValueBeforeEdit;
 
         public Form1()
         {
@@ -71,6 +74,7 @@ namespace ProjectTracker
 
         private async void Form1_Load(object sender, EventArgs e)
         {
+            dgvDetailView.DataError += dgvDetailView_DataError;
             try
             {
                 dgvDetailView.AutoGenerateColumns = false;
@@ -142,13 +146,16 @@ namespace ProjectTracker
 
         private async Task<List<MainScheduleGridView>> LoadProjectTasksAsync()
         {
+            SetStatus("Connecting to GitHub...", 15);
             string tempFile = await DownloadMppFromGitHubAsync();
 
             try
             {
+                SetStatus("Reading project file...", 35);
                 var reader = new UniversalProjectReader();
                 var project = reader.Read(tempFile);
 
+                SetStatus("Parsing tasks...", 55);
                 var allTasks = project.Tasks
                         .Where(t => !string.IsNullOrWhiteSpace(t.Name))
                         .Where(t => string.Equals(t.GetText(1)?.ToString(), "2.0 Production", StringComparison.OrdinalIgnoreCase))
@@ -160,6 +167,12 @@ namespace ProjectTracker
                 var embeddedTasks = level2Tasks
                      .Where(t => t.Name.Contains("Embedded", StringComparison.OrdinalIgnoreCase))
                      .ToList();
+                var testingTasks = level2Tasks
+                     .Where(t => t.Name.Contains("Testing", StringComparison.OrdinalIgnoreCase))
+                     .ToList();
+                var testCorrectionsTasks = level2Tasks
+                     .Where(t => t.Name.Contains("Test Corrections", StringComparison.OrdinalIgnoreCase))
+                     .ToList();
 
                 List<MainScheduleGridView> rows = level1Tasks
                     .Select(parent =>
@@ -169,20 +182,23 @@ namespace ProjectTracker
                            c.WBS.StartsWith(parent.WBS + ".", StringComparison.OrdinalIgnoreCase) ||
                            c.WBS == parent.WBS);
 
-                        // Fall back to any level 2 child if no embedded child found
-                        var anyChild = level2Tasks.FirstOrDefault(c =>
-                            c.WBS.StartsWith(parent.WBS + ".", StringComparison.OrdinalIgnoreCase) ||
-                            c.WBS == parent.WBS);
+                        var testingChild = testingTasks.FirstOrDefault(c =>
+                           c.WBS.StartsWith(parent.WBS + ".", StringComparison.OrdinalIgnoreCase) ||
+                           c.WBS == parent.WBS);
 
-                        var dateSource = embeddedChild ?? anyChild;
+                        var testCorrectionsChild = testCorrectionsTasks.FirstOrDefault(c =>
+                           c.WBS.StartsWith(parent.WBS + ".", StringComparison.OrdinalIgnoreCase) ||
+                           c.WBS == parent.WBS);
 
                         return new MainScheduleGridView
                         {
                             MSProjectGuid = parent.GUID,
                             ProjectName = parent.Name,           // Level 1 name
-                            StartDate = dateSource?.Start,          // Level 2 date
-                            CurrentFinishDate = dateSource?.Finish,        // Level 2 date
-                            CurrentPercent = (int)(dateSource?.PercentageComplete ?? 0)
+                            StartDate = embeddedChild?.Start,          // Level 2 date
+                            CurrentFinishDate = embeddedChild?.Finish,        // Level 2 date
+                            CurrentPercent = (int?)(embeddedChild?.PercentageComplete),
+                            TestingStartDate = testingChild?.Start,
+                            ReleasedDate = testCorrectionsChild?.Finish
                         };
                     })
                     .ToList();
@@ -201,21 +217,36 @@ namespace ProjectTracker
                 //            CurrentPercent = (int)(t.PercentageComplete ?? 0)
                 //        })
                 //        .ToList();
-
-                var modifications = LoadModificationFile();
+                SetStatus("Applying saved modifications...", 80);
+                var modifications = _savedModifications;
 
                 foreach (var row in rows)
                 {
                     if (row.MSProjectGuid.HasValue &&
                         modifications.TryGetValue(
                             row.MSProjectGuid.Value,
-                            out ProjectModification ? mod))
+                            out ProjectModification? mod))
                     {
                         row.ProgrammersName = mod.ProgrammersName;
                         row.UpdatedFinishDate = mod.UpdatedFinishDate;
                         row.UpdatedPercent = mod.UpdatedPercent;
                         row.TestingPercent = mod.TestingPercent;
                         row.Notes = mod.Notes ?? string.Empty;
+
+                        EnsureProgrammerInComboColumn(mod.ProgrammersName);
+                    }
+                }
+
+                foreach (var row in rows)
+                {
+                    if (row.MSProjectGuid.HasValue &&
+                        _pendingChanges.TryGetValue(row.MSProjectGuid.Value, out ProjectModification? pending))
+                    {
+                        row.ProgrammersName = pending.ProgrammersName;
+                        row.UpdatedFinishDate = pending.UpdatedFinishDate;
+                        row.UpdatedPercent = pending.UpdatedPercent;
+                        row.TestingPercent = pending.TestingPercent;
+                        row.Notes = pending.Notes ?? string.Empty;
                     }
                 }
 
@@ -261,19 +292,20 @@ namespace ProjectTracker
 
         private async Task RefreshProjectData()
         {
-            var rows =
-                await LoadProjectTasksAsync();
+            SetStatus("Loading modifications...", 5);
+            _savedModifications = LoadModificationFile();
 
-            // cache all rows for filtering
+            SetStatus("Downloading schedule...", 10);
+            var rows = await LoadProjectTasksAsync();
+
             _allRows = rows;
 
-            // populate project list based on loaded rows
+            SetStatus("Updating view...", 90);
             PopulateProjectNames();
-
-            // apply any active filters to the grid
             ApplyFilters();
-
             UpdateStatistics(rows);
+
+            SetStatus($"Ready — last refreshed {DateTime.Now:h:mm tt}", 100);
         }
 
         private void PopulateProjectNames()
@@ -370,11 +402,13 @@ namespace ProjectTracker
             var checkedProgrammers = cklbxProgrammersNames.CheckedItems.Cast<string>().ToList();
             if (checkedProgrammers.Count > 0)
             {
-                filtered = filtered.Where(r =>
-                    !string.IsNullOrWhiteSpace(r.Notes) &&
-                    checkedProgrammers.Any(prog =>
-                        r.Notes.IndexOf(prog, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        r.Notes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Any(tok => string.Equals(tok, prog, StringComparison.OrdinalIgnoreCase))));
+                filtered = filtered.Where(r => checkedProgrammers.Any(pN => string.Equals(r.ProgrammersName, pN, StringComparison.OrdinalIgnoreCase)));
+
+                //filtered = filtered.Where(r =>
+                //    !string.IsNullOrWhiteSpace(r.Notes) &&
+                //    checkedProgrammers.Any(prog =>
+                //        r.Notes.IndexOf(prog, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                //        r.Notes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Any(tok => string.Equals(tok, prog, StringComparison.OrdinalIgnoreCase))));
             }
 
             var list = filtered.ToList();
@@ -391,17 +425,21 @@ namespace ProjectTracker
             dt.Columns.Add("ProjectName");
             dt.Columns.Add("StartDate", typeof(DateTime));
             dt.Columns.Add("CurrentFinishDate", typeof(DateTime));
-            dt.Columns.Add("UpdatedFinishDate");
-            dt.Columns.Add("CurrentPercent");
-            dt.Columns.Add("UpdatedPercent");
-            dt.Columns.Add("TestingPercent");
+            dt.Columns.Add("UpdatedFinishDate", typeof(DateTime));
+            dt.Columns.Add("CurrentPercent", typeof(int));
+            dt.Columns.Add("UpdatedPercent", typeof(int));
+            dt.Columns.Add("TestingStartDate", typeof(DateTime));
+            dt.Columns.Add("TestingPercent", typeof(int));
             dt.Columns.Add("ReleasedChecked");
-            dt.Columns.Add("ReleasedDate");
+            dt.Columns.Add("ReleasedDate", typeof(DateTime));
             dt.Columns.Add("Notes");
             dt.Columns.Add("IsModified", typeof(bool));
 
             foreach (var row in rows)
             {
+                bool hasPending = row.MSProjectGuid.HasValue &&
+                      _pendingChanges.ContainsKey(row.MSProjectGuid.Value);
+
                 dt.Rows.Add(
                     row.MSProjectGuid,
                     row.ProgrammersName ?? string.Empty,
@@ -411,22 +449,14 @@ namespace ProjectTracker
                     row.UpdatedFinishDate,
                     row.CurrentPercent,
                     row.UpdatedPercent,
+                    row.TestingStartDate,
                     row.TestingPercent,
                     row.ReleasedChecked,
                     row.ReleasedDate,
                     row.Notes,
-                    row.IsModified
+                    hasPending
                 );
             }
-
-            dt.RowChanged += (s, e) =>
-            {
-                if (e.Row["IsModified"] is bool b && !b)
-                {
-                    e.Row["IsModified"] = true;
-                }
-                ApplyRowStyles();
-            };
 
             return dt;
         }
@@ -447,7 +477,7 @@ namespace ProjectTracker
                 $"Projects: {rows.Count}";
 
             lblModifiedCount.Text =
-                $"Modified: {rows.Count(r => r.IsModified)}";
+                $"Modified: {_pendingChanges.Count}";
         }
 
         private void ApplyRowStyles()
@@ -460,12 +490,15 @@ namespace ProjectTracker
 
                 dgvr.DefaultCellStyle.BackColor = isModified ? Color.LightCoral : Color.White;
                 dgvr.DefaultCellStyle.ForeColor = Color.Black;
+
+                // Apply testing column lock/unlock per row
+                ApplyTestingColumnStyles(dgvr);
             }
         }
 
         private void dgvDetailView_CellValueChanged(object sender, DataGridViewCellEventArgs e)
         {
-
+            ApplyRowStyles();
         }
 
         private async void btnSettings_Click(object sender, EventArgs e)
@@ -492,11 +525,30 @@ namespace ProjectTracker
 
         private void dgvDetailView_CellEndEdit(object sender, DataGridViewCellEventArgs e)
         {
+            if (e.RowIndex < 0) return;
+
+            var row = dgvDetailView.Rows[e.RowIndex];
+
+            if (row.DataBoundItem is DataRowView drv)
+            {
+                SaveRowToPendingChanges(drv.Row);
+
+                bool isPending = Guid.TryParse(drv.Row["MSProjectGuid"]?.ToString(), out Guid g) &&
+                                 _pendingChanges.ContainsKey(g);
+
+                drv.Row["IsModified"] = isPending;
+            }
+
+            _cellValueBeforeEdit = null;
+
+            // Re-evaluate locked columns in case UpdatedPercent changed
+            ApplyTestingColumnStyles(row);
             ApplyRowStyles();
         }
 
-        private void btnSave_Click(object sender, EventArgs e)
+        private async void btnSave_Click(object sender, EventArgs e)
         {
+            SetStatus("Saving changes...", 50, isIndeterminate: true);
             try
             {
                 var modifications = LoadModificationFile();
@@ -553,9 +605,14 @@ namespace ProjectTracker
                 File.WriteAllText("ProjectModifications.json", json);
 
                 MessageBox.Show("Saved successfully.", "Save", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                _pendingChanges.Clear();
+                _savedModifications = LoadModificationFile();
+                await RefreshProjectData();
             }
             catch (Exception ex)
             {
+                SetStatus("Save failed.", 0);
                 MessageBox.Show($"Save failed: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -591,6 +648,254 @@ namespace ProjectTracker
             var location = new Point(rect.Left + 4, rect.Bottom);
             _toolTip.Show(text, dgvDetailView, location, _toolTip.AutoPopDelay);
         }
+
+        private void dgvDetailView_CellBeginEdit(object sender, DataGridViewCellCancelEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            var row = dgvDetailView.Rows[e.RowIndex];
+            var cell = row.Cells[e.ColumnIndex];
+
+            // Cancel edit if cell is locked
+            if (cell.ReadOnly)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            _cellValueBeforeEdit = cell.Value;
+        }
+
+        private void dgvDetailView_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
+        {
+            if (e.Control is not ComboBox combo) return;
+
+            // Remove first to avoid duplicate subscriptions
+            combo.SelectedIndexChanged -= ComboBoxColumn_SelectedIndexChanged;
+            combo.SelectedIndexChanged += ComboBoxColumn_SelectedIndexChanged;
+        }
         //-------------------------------------------------------
+        private void ComboBoxColumn_SelectedIndexChanged(object? sender, EventArgs e)
+        {
+            if (dgvDetailView.CurrentCell == null) return;
+
+            var row = dgvDetailView.CurrentRow;
+            if (row == null) return;
+
+            var newValue = (sender as ComboBox)?.SelectedItem?.ToString();
+
+            if (Equals(_cellValueBeforeEdit?.ToString(), newValue)) return;
+
+            dgvDetailView.CurrentCell.Value = newValue;
+
+            if (row.DataBoundItem is DataRowView drv)
+            {
+                SaveRowToPendingChanges(drv.Row);
+
+                bool isPending = Guid.TryParse(drv.Row["MSProjectGuid"]?.ToString(), out Guid g) &&
+                                 _pendingChanges.ContainsKey(g);
+
+                drv.Row["IsModified"] = isPending;
+            }
+
+            ApplyRowStyles();
+        }
+
+        private void SaveRowToPendingChanges(DataRow row)
+        {
+            if (!Guid.TryParse(row["MSProjectGuid"]?.ToString(), out Guid guid)) return;
+
+            _savedModifications.TryGetValue(guid, out ProjectModification? saved);
+
+            var current = new ProjectModification
+            {
+                MSProjectGuid = guid,
+                ProgrammersName = row["ProgrammersName"]?.ToString(),
+
+                UpdatedFinishDate = DateTime.TryParse(
+                    row["UpdatedFinishDate"]?.ToString(), out DateTime ufd) ? ufd : null,
+
+                UpdatedPercent = int.TryParse(
+                    row["UpdatedPercent"]?.ToString(), out int up) ? up : null,
+
+                TestingPercent = int.TryParse(
+                    row["TestingPercent"]?.ToString(), out int tp) ? tp : null,
+
+                ReleasedChecked = bool.TryParse(
+                    row["ReleasedChecked"]?.ToString(), out bool rc) && rc,
+
+                ReleasedDate = DateTime.TryParse(
+                    row["ReleasedDate"]?.ToString(), out DateTime rd) ? rd : null,
+
+                Notes = row["Notes"]?.ToString()
+            };
+
+            bool matchesSaved =
+                saved != null &&
+                current.ProgrammersName == saved.ProgrammersName &&
+                current.UpdatedFinishDate == saved.UpdatedFinishDate &&
+                current.UpdatedPercent == saved.UpdatedPercent &&
+                current.TestingPercent == saved.TestingPercent &&
+                current.ReleasedChecked == saved.ReleasedChecked &&
+                current.ReleasedDate == saved.ReleasedDate &&
+                current.Notes == saved.Notes;
+
+            bool isEmpty =
+                saved == null &&
+                string.IsNullOrWhiteSpace(current.ProgrammersName) &&
+                current.UpdatedFinishDate == null &&
+                current.UpdatedPercent == null &&
+                current.TestingPercent == null &&
+                !current.ReleasedChecked &&
+                current.ReleasedDate == null &&
+                string.IsNullOrWhiteSpace(current.Notes);
+
+            if (matchesSaved || isEmpty)
+                _pendingChanges.Remove(guid);
+            else
+                _pendingChanges[guid] = current;
+        }
+
+        private async void btnRevert_Click(object sender, EventArgs e)
+        {
+            var confirm = MessageBox.Show(
+            "Revert all unsaved changes?",
+            "Revert",
+            MessageBoxButtons.YesNo,
+            MessageBoxIcon.Warning);
+
+            if (confirm != DialogResult.Yes) return;
+
+            SetStatus("Reverting changes...", 50, isIndeterminate: true);
+            _pendingChanges.Clear();
+            await RefreshProjectData();
+        }
+
+        private void ApplyTestingColumnStyles(DataGridViewRow dgvr)
+        {
+            if (dgvr.DataBoundItem is not DataRowView drv) return;
+
+            bool isComplete = int.TryParse(drv.Row["UpdatedPercent"]?.ToString(), out int pct) && pct == 100;
+
+            string[] lockedColumns = { "TestingStartDate", "TestingPercent", "ReleasedDate", "ReleasedChecked" };
+
+            foreach (var colName in lockedColumns)
+            {
+                if (dgvDetailView.Columns[colName] is not DataGridViewColumn col) continue;
+
+                var cell = dgvr.Cells[col.Index];
+
+                if (isComplete)
+                {
+                    cell.ReadOnly = false;
+                    cell.Style.BackColor = Color.Empty;
+                    cell.Style.ForeColor = Color.Empty;
+                }
+                else
+                {
+                    cell.ReadOnly = true;
+                    cell.Style.BackColor = Color.LightGray;
+                    cell.Style.ForeColor = Color.DarkGray;
+                }
+            }
+        }
+
+        private void tbxSearchProgrammers_TextChanged(object sender, EventArgs e)
+        {
+            string search = tbxSearchProgrammers.Text.Trim();
+
+            // Save currently checked names before rebuilding
+            var checkedNames = cklbxProgrammersNames.CheckedItems
+                .Cast<string>()
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            cklbxProgrammersNames.BeginUpdate();
+            cklbxProgrammersNames.Items.Clear();
+
+            var filtered = string.IsNullOrWhiteSpace(search)
+                ? _programmerList
+                : _programmerList.Where(p => p.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0).ToList();
+
+            foreach (var name in filtered)
+            {
+                cklbxProgrammersNames.Items.Add(name, checkedNames.Contains(name));
+            }
+
+            cklbxProgrammersNames.EndUpdate();
+
+            ApplyFilters();
+        }
+
+        private void tbxSearchProjects_TextChanged(object sender, EventArgs e)
+        {
+            string search = tbxSearchProjects.Text.Trim();
+
+            // Save currently checked names before rebuilding
+            var checkedNames = cklbxProjectNames.CheckedItems
+                .Cast<string>()
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+            cklbxProjectNames.BeginUpdate();
+            cklbxProjectNames.Items.Clear();
+
+            var allProjectNames = _allRows
+                .Select(r => r.ProjectName)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(n => n, StringComparer.OrdinalIgnoreCase);
+
+            var filtered = string.IsNullOrWhiteSpace(search)
+                ? allProjectNames
+                : allProjectNames.Where(p => p.IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
+
+            foreach (var name in filtered)
+            {
+                cklbxProjectNames.Items.Add(name, checkedNames.Contains(name));
+            }
+
+            cklbxProjectNames.EndUpdate();
+
+            ApplyFilters();
+        }
+
+        private void dgvDetailView_DataError(object sender, DataGridViewDataErrorEventArgs e)
+        {
+            // Suppress the combobox "value not valid" error — this happens when
+            // a saved ProgrammersName isn't in the combo items list yet during binding
+            if (dgvDetailView.Columns[e.ColumnIndex] is DataGridViewComboBoxColumn)
+            {
+                e.ThrowException = false;
+                return;
+            }
+
+            // Let all other data errors surface normally
+            MessageBox.Show($"Grid error: {e.Exception?.Message}", "Data Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+        private void EnsureProgrammerInComboColumn(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return;
+            if (dgvDetailView.Columns["ProgrammersName"] is not DataGridViewComboBoxColumn col) return;
+
+            if (!col.Items.Contains(name))
+                col.Items.Add(name);
+        }
+
+        private void SetStatus(string message, int progressPercent, bool isIndeterminate = false)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(() => SetStatus(message, progressPercent, isIndeterminate));
+                return;
+            }
+
+            toolStripStatusLabel1.Text = message;
+            toolStripProgressBar1.Style = isIndeterminate
+                ? ProgressBarStyle.Marquee
+                : ProgressBarStyle.Continuous;
+
+            if (!isIndeterminate)
+                toolStripProgressBar1.Value = Math.Clamp(progressPercent, 0, 100);
+        }
     }
 }
