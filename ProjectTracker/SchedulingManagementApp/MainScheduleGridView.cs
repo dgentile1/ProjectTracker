@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace ProjectTracker
 {
@@ -13,17 +11,18 @@ namespace ProjectTracker
         public DateTime? CurrentFinishDate { get; set; }
         public int? CurrentPercent { get; set; }
 
-
         // From JSON
         public string? ProgrammersName { get; set; }
+        public DateTime? UpdatedStartDate { get; set; }
         public DateTime? UpdatedFinishDate { get; set; }
+        public DateTime? UpdatedTestingStartDate { get; set; }
         public int? UpdatedPercent { get; set; }
         public DateTime? TestingStartDate { get; set; }
-        public int? TestingPercent { get; set; }
+        public int? TestingRounds { get; set; }
         public bool? ReleasedChecked { get; set; }
         public DateTime? ReleasedDate { get; set; }
         public string? Notes { get; set; }
+        public string? TrelloUrl { get; set; }
         public bool IsModified => false;
-            
     }
 }

@@ -44,13 +44,14 @@
             MSProjectGuid = new DataGridViewTextBoxColumn();
             ProgrammersName = new DataGridViewComboBoxColumn();
             ProjectName = new DataGridViewTextBoxColumn();
+            TrelloLink = new DataGridViewButtonColumn();
             StartDate = new DataGridViewTextBoxColumn();
             CurrentFinishDate = new DataGridViewTextBoxColumn();
             UpdatedFinishDate = new DataGridViewTextBoxColumn();
             CurrentPercent = new DataGridViewTextBoxColumn();
             UpdatedPercent = new DataGridViewTextBoxColumn();
             TestingStartDate = new DataGridViewTextBoxColumn();
-            TestingPercent = new DataGridViewTextBoxColumn();
+            TestingRounds = new DataGridViewTextBoxColumn();
             ReleasedDate = new DataGridViewTextBoxColumn();
             ReleasedChecked = new DataGridViewCheckBoxColumn();
             Notes = new DataGridViewTextBoxColumn();
@@ -68,6 +69,9 @@
             label1 = new Label();
             label2 = new Label();
             gbxRange = new GroupBox();
+            rbtnModified = new RadioButton();
+            rbtnMonth = new RadioButton();
+            rbtnTwoWeeks = new RadioButton();
             statusStrip1 = new StatusStrip();
             toolStripProgressBar1 = new ToolStripProgressBar();
             toolStripStatusLabel1 = new ToolStripStatusLabel();
@@ -80,6 +84,8 @@
             btnModifiedReport = new Button();
             tbxSearchProgrammers = new TextBox();
             tbxSearchProjects = new TextBox();
+            btnUnselectAllProgrammers = new Button();
+            btnUnselectAllProjects = new Button();
             ((System.ComponentModel.ISupportInitialize)dgvDetailView).BeginInit();
             ((System.ComponentModel.ISupportInitialize)mainScheduleGridViewBindingSource).BeginInit();
             ((System.ComponentModel.ISupportInitialize)mSProjectFieldsBindingSource).BeginInit();
@@ -104,14 +110,15 @@
             dataGridViewCellStyle1.WrapMode = DataGridViewTriState.True;
             dgvDetailView.ColumnHeadersDefaultCellStyle = dataGridViewCellStyle1;
             dgvDetailView.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvDetailView.Columns.AddRange(new DataGridViewColumn[] { MSProjectGuid, ProgrammersName, ProjectName, StartDate, CurrentFinishDate, UpdatedFinishDate, CurrentPercent, UpdatedPercent, TestingStartDate, TestingPercent, ReleasedDate, ReleasedChecked, Notes, isModified, DetailView });
+            dgvDetailView.Columns.AddRange(new DataGridViewColumn[] { MSProjectGuid, ProgrammersName, ProjectName, TrelloLink, StartDate, CurrentFinishDate, UpdatedFinishDate, CurrentPercent, UpdatedPercent, TestingStartDate, TestingRounds, ReleasedDate, ReleasedChecked, Notes, isModified, DetailView });
             dgvDetailView.DataSource = mainScheduleGridViewBindingSource;
-            dgvDetailView.Location = new Point(448, 102);
+            dgvDetailView.Location = new Point(448, 147);
             dgvDetailView.Name = "dgvDetailView";
             dgvDetailView.RowHeadersWidth = 20;
-            dgvDetailView.Size = new Size(1387, 747);
+            dgvDetailView.Size = new Size(1387, 702);
             dgvDetailView.TabIndex = 0;
             dgvDetailView.CellBeginEdit += dgvDetailView_CellBeginEdit;
+            dgvDetailView.CellClick += dgvDetailView_CellClick;
             dgvDetailView.CellEndEdit += dgvDetailView_CellEndEdit;
             dgvDetailView.CellValueChanged += dgvDetailView_CellValueChanged;
             dgvDetailView.EditingControlShowing += dgvDetailView_EditingControlShowing;
@@ -138,11 +145,21 @@
             // 
             ProjectName.AutoSizeMode = DataGridViewAutoSizeColumnMode.AllCellsExceptHeader;
             ProjectName.DataPropertyName = "ProjectName";
-            ProjectName.DividerWidth = 5;
             ProjectName.HeaderText = "Project Name";
             ProjectName.Name = "ProjectName";
             ProjectName.ReadOnly = true;
             ProjectName.Width = 5;
+            // 
+            // TrelloLink
+            // 
+            TrelloLink.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
+            TrelloLink.DividerWidth = 5;
+            TrelloLink.HeaderText = "Trello Link";
+            TrelloLink.MinimumWidth = 64;
+            TrelloLink.Name = "TrelloLink";
+            TrelloLink.Text = "Open";
+            TrelloLink.UseColumnTextForButtonValue = true;
+            TrelloLink.Width = 65;
             // 
             // StartDate
             // 
@@ -217,17 +234,16 @@
             TestingStartDate.Name = "TestingStartDate";
             TestingStartDate.Width = 92;
             // 
-            // TestingPercent
+            // TestingRounds
             // 
-            TestingPercent.DataPropertyName = "TestingPercent";
             dataGridViewCellStyle9.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            dataGridViewCellStyle9.Format = "0\\%";
-            dataGridViewCellStyle9.NullValue = "0%";
-            TestingPercent.DefaultCellStyle = dataGridViewCellStyle9;
-            TestingPercent.HeaderText = "Testing %";
-            TestingPercent.MinimumWidth = 60;
-            TestingPercent.Name = "TestingPercent";
-            TestingPercent.Width = 60;
+            dataGridViewCellStyle9.Format = "0";
+            dataGridViewCellStyle9.NullValue = "0";
+            TestingRounds.DefaultCellStyle = dataGridViewCellStyle9;
+            TestingRounds.HeaderText = "Testing Rounds";
+            TestingRounds.MinimumWidth = 60;
+            TestingRounds.Name = "TestingRounds";
+            TestingRounds.Width = 60;
             // 
             // ReleasedDate
             // 
@@ -273,6 +289,7 @@
             // 
             DetailView.AutoSizeMode = DataGridViewAutoSizeColumnMode.ColumnHeader;
             DetailView.HeaderText = "Detail View";
+            DetailView.MinimumWidth = 64;
             DetailView.Name = "DetailView";
             DetailView.Text = "View";
             DetailView.UseColumnTextForButtonValue = true;
@@ -292,7 +309,7 @@
             // 
             // btnRefresh
             // 
-            btnRefresh.Location = new Point(867, 63);
+            btnRefresh.Location = new Point(867, 108);
             btnRefresh.Name = "btnRefresh";
             btnRefresh.Size = new Size(108, 33);
             btnRefresh.TabIndex = 1;
@@ -368,6 +385,9 @@
             // gbxRange
             // 
             gbxRange.BackColor = SystemColors.Control;
+            gbxRange.Controls.Add(rbtnModified);
+            gbxRange.Controls.Add(rbtnMonth);
+            gbxRange.Controls.Add(rbtnTwoWeeks);
             gbxRange.Controls.Add(label1);
             gbxRange.Controls.Add(label2);
             gbxRange.Controls.Add(dtpStart);
@@ -375,10 +395,49 @@
             gbxRange.Font = new Font("Segoe UI", 18F, FontStyle.Regular, GraphicsUnit.Point, 0);
             gbxRange.Location = new Point(448, 12);
             gbxRange.Name = "gbxRange";
-            gbxRange.Size = new Size(413, 84);
+            gbxRange.Size = new Size(413, 129);
             gbxRange.TabIndex = 8;
             gbxRange.TabStop = false;
             gbxRange.Text = "Range";
+            // 
+            // rbtnModified
+            // 
+            rbtnModified.AutoSize = true;
+            rbtnModified.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            rbtnModified.Location = new Point(317, 90);
+            rbtnModified.Name = "rbtnModified";
+            rbtnModified.Size = new Size(79, 21);
+            rbtnModified.TabIndex = 27;
+            rbtnModified.TabStop = true;
+            rbtnModified.Text = "Modified";
+            rbtnModified.UseVisualStyleBackColor = true;
+            rbtnModified.CheckedChanged += rbtnModified_CheckedChanged;
+            // 
+            // rbtnMonth
+            // 
+            rbtnMonth.AutoSize = true;
+            rbtnMonth.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            rbtnMonth.Location = new Point(177, 90);
+            rbtnMonth.Name = "rbtnMonth";
+            rbtnMonth.Size = new Size(64, 21);
+            rbtnMonth.TabIndex = 26;
+            rbtnMonth.TabStop = true;
+            rbtnMonth.Text = "Month";
+            rbtnMonth.UseVisualStyleBackColor = true;
+            rbtnMonth.CheckedChanged += rbtnMonth_CheckedChanged;
+            // 
+            // rbtnTwoWeeks
+            // 
+            rbtnTwoWeeks.AutoSize = true;
+            rbtnTwoWeeks.Font = new Font("Segoe UI", 9.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            rbtnTwoWeeks.Location = new Point(18, 90);
+            rbtnTwoWeeks.Name = "rbtnTwoWeeks";
+            rbtnTwoWeeks.Size = new Size(90, 21);
+            rbtnTwoWeeks.TabIndex = 25;
+            rbtnTwoWeeks.TabStop = true;
+            rbtnTwoWeeks.Text = "Two Weeks";
+            rbtnTwoWeeks.UseVisualStyleBackColor = true;
+            rbtnTwoWeeks.CheckedChanged += rbtnTwoWeeks_CheckedChanged;
             // 
             // statusStrip1
             // 
@@ -404,7 +463,7 @@
             // btnSettings
             // 
             btnSettings.Anchor = AnchorStyles.Top | AnchorStyles.Right;
-            btnSettings.Location = new Point(1727, 63);
+            btnSettings.Location = new Point(1727, 108);
             btnSettings.Name = "btnSettings";
             btnSettings.Size = new Size(108, 33);
             btnSettings.TabIndex = 12;
@@ -431,6 +490,7 @@
             cklbxProgrammersNames.Location = new Point(12, 102);
             cklbxProgrammersNames.Name = "cklbxProgrammersNames";
             cklbxProgrammersNames.Size = new Size(190, 584);
+            cklbxProgrammersNames.Sorted = true;
             cklbxProgrammersNames.TabIndex = 15;
             cklbxProgrammersNames.SelectedIndexChanged += cklbxProgrammersNames_SelectedIndexChanged;
             // 
@@ -442,6 +502,7 @@
             cklbxProjectNames.Location = new Point(208, 102);
             cklbxProjectNames.Name = "cklbxProjectNames";
             cklbxProjectNames.Size = new Size(234, 584);
+            cklbxProjectNames.Sorted = true;
             cklbxProjectNames.TabIndex = 16;
             cklbxProjectNames.SelectedIndexChanged += cklbxProjectNames_SelectedIndexChanged;
             // 
@@ -449,7 +510,7 @@
             // 
             btnSave.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnSave.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btnSave.Location = new Point(1260, 50);
+            btnSave.Location = new Point(1265, 95);
             btnSave.Name = "btnSave";
             btnSave.Size = new Size(140, 46);
             btnSave.TabIndex = 17;
@@ -459,7 +520,7 @@
             // 
             // btnRevert
             // 
-            btnRevert.Location = new Point(981, 63);
+            btnRevert.Location = new Point(981, 108);
             btnRevert.Name = "btnRevert";
             btnRevert.Size = new Size(108, 33);
             btnRevert.TabIndex = 18;
@@ -471,7 +532,7 @@
             // 
             btnModifiedReport.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             btnModifiedReport.Font = new Font("Segoe UI", 12F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            btnModifiedReport.Location = new Point(1695, 11);
+            btnModifiedReport.Location = new Point(1695, 50);
             btnModifiedReport.Name = "btnModifiedReport";
             btnModifiedReport.Size = new Size(140, 46);
             btnModifiedReport.TabIndex = 20;
@@ -496,11 +557,31 @@
             tbxSearchProjects.TabIndex = 22;
             tbxSearchProjects.TextChanged += tbxSearchProjects_TextChanged;
             // 
+            // btnUnselectAllProgrammers
+            // 
+            btnUnselectAllProgrammers.Location = new Point(12, 692);
+            btnUnselectAllProgrammers.Name = "btnUnselectAllProgrammers";
+            btnUnselectAllProgrammers.Size = new Size(96, 33);
+            btnUnselectAllProgrammers.TabIndex = 23;
+            btnUnselectAllProgrammers.Text = "Unselect All";
+            btnUnselectAllProgrammers.UseVisualStyleBackColor = true;
+            // 
+            // btnUnselectAllProjects
+            // 
+            btnUnselectAllProjects.Location = new Point(208, 692);
+            btnUnselectAllProjects.Name = "btnUnselectAllProjects";
+            btnUnselectAllProjects.Size = new Size(96, 33);
+            btnUnselectAllProjects.TabIndex = 24;
+            btnUnselectAllProjects.Text = "Unselect All";
+            btnUnselectAllProjects.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1847, 874);
+            Controls.Add(btnUnselectAllProjects);
+            Controls.Add(btnUnselectAllProgrammers);
             Controls.Add(tbxSearchProjects);
             Controls.Add(tbxSearchProgrammers);
             Controls.Add(btnModifiedReport);
@@ -557,23 +638,29 @@
         private ToolStripStatusLabel toolStripStatusLabel1;
         private Button btnSave;
         private Button btnRevert;
+        private Button btnModifiedReport;
+        private TextBox tbxSearchProgrammers;
+        private TextBox tbxSearchProjects;
+        private Button btnUnselectAllProgrammers;
+        private Button btnUnselectAllProjects;
         private DataGridViewTextBoxColumn MSProjectGuid;
         private DataGridViewComboBoxColumn ProgrammersName;
         private DataGridViewTextBoxColumn ProjectName;
+        private DataGridViewButtonColumn TrelloLink;
         private DataGridViewTextBoxColumn StartDate;
         private DataGridViewTextBoxColumn CurrentFinishDate;
         private DataGridViewTextBoxColumn UpdatedFinishDate;
         private DataGridViewTextBoxColumn CurrentPercent;
         private DataGridViewTextBoxColumn UpdatedPercent;
         private DataGridViewTextBoxColumn TestingStartDate;
-        private DataGridViewTextBoxColumn TestingPercent;
+        private DataGridViewTextBoxColumn TestingRounds;
         private DataGridViewTextBoxColumn ReleasedDate;
         private DataGridViewCheckBoxColumn ReleasedChecked;
         private DataGridViewTextBoxColumn Notes;
         private DataGridViewCheckBoxColumn isModified;
         private DataGridViewButtonColumn DetailView;
-        private Button btnModifiedReport;
-        private TextBox tbxSearchProgrammers;
-        private TextBox tbxSearchProjects;
+        private RadioButton rbtnTwoWeeks;
+        private RadioButton rbtnMonth;
+        private RadioButton rbtnModified;
     }
 }

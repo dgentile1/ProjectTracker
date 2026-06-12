@@ -4,7 +4,7 @@ namespace ProjectTracker.Models
 {
     public class Programmers
     {
-        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public Guid UserGuid { get; set; } = Guid.NewGuid();
         public string FirstName { get; set; }
         public string LastName { get; set; }
 

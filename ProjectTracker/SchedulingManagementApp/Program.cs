@@ -2,15 +2,17 @@ namespace ProjectTracker
 {
     internal static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+
+            // Show the startup form as a dialog, not as the app's main form
+            using var startup = new frmStartup();
+            if (startup.ShowDialog() != DialogResult.OK)
+                return; // user closed without selecting — exit app
+
+            // Now run Form1 as the true main form
             Application.Run(new Form1());
         }
     }

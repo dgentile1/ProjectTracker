@@ -6,8 +6,8 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
+using System.Text.Json;
 
 namespace ProjectTracker
 {
@@ -16,6 +16,7 @@ namespace ProjectTracker
         public frmSettings()
         {
             InitializeComponent();
+            Load += (_, _) => ThemeManager.ApplyTheme(this);
             // Skip loading at design time to avoid designer issues
             if (LicenseManager.UsageMode != LicenseUsageMode.Designtime)
             {
@@ -24,38 +25,38 @@ namespace ProjectTracker
         }
 
         private const string LocalFileName = "Programmers.json";
-        private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions { WriteIndented = true };
-        public static string GetDesktopFilePath(string fileName = "Programmers.json")
-           => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), fileName);
+        //private static readonly JsonSerializerOptions JsonOptions = new JsonSerializerOptions { WriteIndented = true };
+        //public static string GetDesktopFilePath(string fileName = "Programmers.json")
+        //   => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), fileName);
 
         public static async Task<string> SaveToDesktopAsync<T>(IEnumerable<T> programmers, string fileName = "Programmers.json")
         {
-            string path = GetDesktopFilePath(fileName);
-            string json = JsonSerializer.Serialize(programmers, JsonOptions);
+            string path = JsonFileHelper.GetDesktopFilePath(fileName);
+            string json = JsonSerializer.Serialize(programmers, JsonFileHelper.JsonOptions);
             await File.WriteAllTextAsync(path, json, Encoding.UTF8);
             return path;
         }
 
         public static string SaveToDesktop<T>(IEnumerable<T> programmers, string fileName = "Programmers.json")
         {
-            string path = GetDesktopFilePath(fileName);
-            string json = JsonSerializer.Serialize(programmers, JsonOptions);
+            string path = JsonFileHelper.GetDesktopFilePath(fileName);
+            string json = JsonSerializer.Serialize(programmers, JsonFileHelper.JsonOptions);
             File.WriteAllText(path, json, Encoding.UTF8);
             return path;
         }
 
-        public static async Task<List<T>> LoadFromDesktopAsync<T>(string fileName = "Programmers.json")
-        {
-            string path = GetDesktopFilePath(fileName);
-            if (!File.Exists(path))
-                return new List<T>();
+        //public static async Task<List<T>> LoadFromDesktopAsync<T>(string fileName = "Programmers.json")
+        //{
+        //    string path = GetDesktopFilePath(fileName);
+        //    if (!File.Exists(path))
+        //        return new List<T>();
 
-            string json = await File.ReadAllTextAsync(path, Encoding.UTF8);
-            return JsonSerializer.Deserialize<List<T>>(json, JsonOptions) ?? new List<T>();
-        }
+        //    string json = await File.ReadAllTextAsync(path, Encoding.UTF8);
+        //    return JsonSerializer.Deserialize<List<T>>(json, JsonOptions) ?? new List<T>();
+        //}
         public static async Task SaveLocalAsync(IEnumerable<Programmers> programmers)
         {
-            string json = JsonSerializer.Serialize(programmers, JsonOptions);
+            string json = JsonSerializer.Serialize(programmers, JsonFileHelper.JsonOptions);
             await File.WriteAllTextAsync(LocalFileName, json, Encoding.UTF8);
         }
 
@@ -65,7 +66,7 @@ namespace ProjectTracker
                 return new List<Programmers>();
 
             string json = await File.ReadAllTextAsync(LocalFileName, Encoding.UTF8);
-            return JsonSerializer.Deserialize<List<Programmers>>(json, JsonOptions) ?? new List<Programmers>();
+            return JsonSerializer.Deserialize<List<Programmers>>(json, JsonFileHelper.JsonOptions) ?? new List<Programmers>();
         }
 
         // Upload (create or update) the file to the repository via GitHub Contents API
@@ -88,7 +89,7 @@ namespace ProjectTracker
                     sha = shaProp.GetString();
             }
 
-            string fileContent = JsonSerializer.Serialize(programmers, JsonOptions);
+            string fileContent = JsonSerializer.Serialize(programmers, JsonFileHelper.JsonOptions);
             string b64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(fileContent));
 
             var payload = new
@@ -99,7 +100,7 @@ namespace ProjectTracker
                 branch = GitHubConfig.GitHubBranch
             };
 
-            var putContent = new StringContent(JsonSerializer.Serialize(payload, JsonOptions), Encoding.UTF8, "application/json");
+            var putContent = new StringContent(JsonSerializer.Serialize(payload, JsonFileHelper.JsonOptions), Encoding.UTF8, "application/json");
             var putResp = await client.PutAsync(apiUrl, putContent);
             putResp.EnsureSuccessStatusCode();
         }
@@ -141,7 +142,7 @@ namespace ProjectTracker
                 fileText = content;
             }
 
-            var list = JsonSerializer.Deserialize<List<Programmers>>(fileText, JsonOptions);
+            var list = JsonSerializer.Deserialize<List<Programmers>>(fileText, JsonFileHelper.JsonOptions);
             return list ?? new List<Programmers>();
         }
 
@@ -187,7 +188,7 @@ namespace ProjectTracker
             //// If a new user was added, reload the list so the UI updates
             //if (result == DialogResult.OK)
             //{
-                await LoadProgrammersAsync();
+            await LoadProgrammersAsync();
             //}
         }
 
@@ -198,7 +199,7 @@ namespace ProjectTracker
             // prefer desktop file for quick dev testing; fallback to local file
             try
             {
-                list = await LoadFromDesktopAsync<Programmers>();
+                list = await JsonFileHelper.LoadListAsync<Programmers>("Programmers.json");
                 if (list == null || list.Count == 0)
                 {
                     list = await LoadLocalAsync();
@@ -262,6 +263,11 @@ namespace ProjectTracker
                     MessageBox.Show($"Failed to save programmers: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

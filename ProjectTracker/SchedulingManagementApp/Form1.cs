@@ -228,9 +228,11 @@ namespace ProjectTracker
                             out ProjectModification? mod))
                     {
                         row.ProgrammersName = mod.ProgrammersName;
+                        row.UpdatedStartDate = mod.UpdatedStartDate;
                         row.UpdatedFinishDate = mod.UpdatedFinishDate;
+                        row.UpdatedTestingStartDate = mod.UpdatedTestingStartDate;
                         row.UpdatedPercent = mod.UpdatedPercent;
-                        row.TestingPercent = mod.TestingPercent;
+                        row.TestingRounds = mod.TestingRounds;
                         row.Notes = mod.Notes ?? string.Empty;
 
                         EnsureProgrammerInComboColumn(mod.ProgrammersName);
@@ -243,9 +245,11 @@ namespace ProjectTracker
                         _pendingChanges.TryGetValue(row.MSProjectGuid.Value, out ProjectModification? pending))
                     {
                         row.ProgrammersName = pending.ProgrammersName;
+                        row.UpdatedStartDate = pending.UpdatedStartDate;
                         row.UpdatedFinishDate = pending.UpdatedFinishDate;
+                        row.UpdatedTestingStartDate = pending.UpdatedTestingStartDate;
                         row.UpdatedPercent = pending.UpdatedPercent;
-                        row.TestingPercent = pending.TestingPercent;
+                        row.TestingRounds = pending.TestingRounds;
                         row.Notes = pending.Notes ?? string.Empty;
                     }
                 }
@@ -253,13 +257,24 @@ namespace ProjectTracker
                 DateTime start = dtpStart.Value.Date;
                 DateTime end = dtpEnd.Value.Date;
 
+                if (rbtnTwoWeeks.Checked)
+                {
+                    start = DateTime.Now.AddDays(-7);
+                    end = DateTime.Now.AddDays(7);
+                }
+                else if (rbtnMonth.Checked)
+                {
+                    start = DateTime.Now.AddMonths(-1);
+                    end = DateTime.Now.AddMonths(1);
+                }
+
                 var filteredRows =
-                    rows
-                        .Where(r =>
-                            (r.StartDate >= start && r.StartDate <= end) ||
-                            (r.IsModified && r.UpdatedFinishDate.HasValue && r.UpdatedFinishDate.Value >= start && r.UpdatedFinishDate.Value <= end) ||
-                            (r.CurrentFinishDate >= start && r.CurrentFinishDate <= end))
-                        .ToList();
+                rows
+                    .Where(r =>
+                        (r.StartDate >= start && r.StartDate <= end) ||
+                        (r.IsModified && r.UpdatedFinishDate.HasValue && r.UpdatedFinishDate.Value >= start && r.UpdatedFinishDate.Value <= end) ||
+                        (r.CurrentFinishDate >= start && r.CurrentFinishDate <= end))
+                    .ToList();
 
 
                 return filteredRows;
@@ -331,7 +346,7 @@ namespace ProjectTracker
 
             try
             {
-                programmers = await frmSettings.LoadFromDesktopAsync<Programmers>();
+                programmers = await JsonFileHelper.LoadListAsync<Programmers>("Programmers.json");
             }
             catch (Exception ex)
             {
@@ -403,12 +418,11 @@ namespace ProjectTracker
             if (checkedProgrammers.Count > 0)
             {
                 filtered = filtered.Where(r => checkedProgrammers.Any(pN => string.Equals(r.ProgrammersName, pN, StringComparison.OrdinalIgnoreCase)));
+            }
 
-                //filtered = filtered.Where(r =>
-                //    !string.IsNullOrWhiteSpace(r.Notes) &&
-                //    checkedProgrammers.Any(prog =>
-                //        r.Notes.IndexOf(prog, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                //        r.Notes.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Any(tok => string.Equals(tok, prog, StringComparison.OrdinalIgnoreCase))));
+            if (rbtnModified.Checked)
+            { 
+                filtered = filtered.Where(r => r.IsModified);
             }
 
             var list = filtered.ToList();
@@ -450,7 +464,7 @@ namespace ProjectTracker
                     row.CurrentPercent,
                     row.UpdatedPercent,
                     row.TestingStartDate,
-                    row.TestingPercent,
+                    row.TestingRounds,
                     row.ReleasedChecked,
                     row.ReleasedDate,
                     row.Notes,
@@ -580,7 +594,7 @@ namespace ProjectTracker
                             drv["UpdatedPercent"]?.ToString(), out int up)
                             ? up : null,
 
-                        TestingPercent = int.TryParse(
+                        TestingRounds = int.TryParse(
                             drv["TestingPercent"]?.ToString(), out int tp)
                             ? tp : null,
 
@@ -718,7 +732,7 @@ namespace ProjectTracker
                 UpdatedPercent = int.TryParse(
                     row["UpdatedPercent"]?.ToString(), out int up) ? up : null,
 
-                TestingPercent = int.TryParse(
+                TestingRounds = int.TryParse(
                     row["TestingPercent"]?.ToString(), out int tp) ? tp : null,
 
                 ReleasedChecked = bool.TryParse(
@@ -735,7 +749,7 @@ namespace ProjectTracker
                 current.ProgrammersName == saved.ProgrammersName &&
                 current.UpdatedFinishDate == saved.UpdatedFinishDate &&
                 current.UpdatedPercent == saved.UpdatedPercent &&
-                current.TestingPercent == saved.TestingPercent &&
+                current.TestingRounds == saved.TestingRounds &&
                 current.ReleasedChecked == saved.ReleasedChecked &&
                 current.ReleasedDate == saved.ReleasedDate &&
                 current.Notes == saved.Notes;
@@ -745,7 +759,7 @@ namespace ProjectTracker
                 string.IsNullOrWhiteSpace(current.ProgrammersName) &&
                 current.UpdatedFinishDate == null &&
                 current.UpdatedPercent == null &&
-                current.TestingPercent == null &&
+                current.TestingRounds == null &&
                 !current.ReleasedChecked &&
                 current.ReleasedDate == null &&
                 string.IsNullOrWhiteSpace(current.Notes);
@@ -777,7 +791,7 @@ namespace ProjectTracker
 
             bool isComplete = int.TryParse(drv.Row["UpdatedPercent"]?.ToString(), out int pct) && pct == 100;
 
-            string[] lockedColumns = { "TestingStartDate", "TestingPercent", "ReleasedDate", "ReleasedChecked" };
+            string[] lockedColumns = { "TestingStartDate", "TestingRounds", "ReleasedDate", "ReleasedChecked" };
 
             foreach (var colName in lockedColumns)
             {
@@ -896,6 +910,102 @@ namespace ProjectTracker
 
             if (!isIndeterminate)
                 toolStripProgressBar1.Value = Math.Clamp(progressPercent, 0, 100);
+        }
+
+        private void dgvDetailView_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+
+            if (dgvDetailView.Rows[e.RowIndex].DataBoundItem is not DataRowView drv) return;
+
+            if (!Guid.TryParse(drv.Row["MSProjectGuid"]?.ToString(), out Guid guid)) return;
+
+            string colName = dgvDetailView.Columns[e.ColumnIndex]?.Name ?? string.Empty;
+
+            // ── Trello button ─────────────────────────────────────────────────
+            if (colName == "TrelloLink")
+            {
+                string projectName = drv.Row["ProjectName"]?.ToString() ?? string.Empty;
+
+                // Check whether a URL is already saved — if so, open it directly.
+                // If not (or Shift is held), open the edit form first.
+                var mods = LoadModificationFile();
+                bool hasUrl = mods.TryGetValue(guid, out var existingMod) &&
+                              !string.IsNullOrWhiteSpace(existingMod.TrelloUrl);
+
+                bool shiftHeld = (ModifierKeys & Keys.Shift) != 0;
+
+                if (hasUrl && !shiftHeld)
+                {
+                    // Open the URL directly in the browser
+                    OpenUrl(existingMod!.TrelloUrl!);
+                }
+                else
+                {
+                    // Open the edit form to set / update the URL
+                    var trelloForm = new frmTrelloURL();
+                    trelloForm.LoadForProject(guid, projectName);
+
+                    if (trelloForm.ShowDialog(this) == DialogResult.OK)
+                    {
+                        // Reload so the in-memory state reflects the new URL
+                        _savedModifications = LoadModificationFile();
+                    }
+                }
+
+                return;
+            }
+
+            // ── Detail View button ────────────────────────────────────────────
+            if (colName == "DetailView")
+            {
+                var sourceRow = _allRows.FirstOrDefault(r => r.MSProjectGuid == guid);
+                if (sourceRow == null) return;
+
+                var detail = new frmDetailView();
+
+                detail.ProjectSaved += async (s, e) =>
+                {
+                    _savedModifications = LoadModificationFile();
+                    await RefreshProjectData();
+                };
+
+                detail.LoadProject(sourceRow);
+                detail.ShowDialog(this);
+            }
+        }
+
+
+        private static void OpenUrl(string url)
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = url,
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Could not open URL: {ex.Message}", "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private async void rbtnTwoWeeks_CheckedChanged(object sender, EventArgs e)
+        {
+            await RefreshProjectData();
+        }
+
+        private async void rbtnMonth_CheckedChanged(object sender, EventArgs e)
+        {
+            await RefreshProjectData();
+        }
+
+        private async void rbtnModified_CheckedChanged(object sender, EventArgs e)
+        {
+            await RefreshProjectData();
         }
     }
 }
